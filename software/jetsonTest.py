@@ -33,6 +33,7 @@ index = 0
 for camera in cameras:
     ret, frame =  camera.read()
     cv.imwrite('capture' + str(index) + '.png', frame)
+    index = index + 1
     camera.release()
 
 imagePaths = ['capture0.png','capture1.png','capture2.png']
