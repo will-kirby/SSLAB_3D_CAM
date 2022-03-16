@@ -39,7 +39,7 @@ if status == 0:
 	cv2.imwrite('stitchedImages.png', stitched)
 	# display the output stitched image to our screen
 	cv2.imshow("Stitched", stitched)
-	#cv2.waitKey(1) == ord('q')
+	cv2.waitKey(0)
 # otherwise the stitching failed, likely due to not enough keypoints)
 # being detected
 else:
