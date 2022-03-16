@@ -7,6 +7,8 @@ cap = cv.VideoCapture(0)
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
+
+index = 0
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -21,6 +23,11 @@ while True:
     cv.imshow('frame', frame)
     if cv.waitKey(1) == ord('q'):
         break
+
+    if cv.waitKey(1) == ord('c'):
+        cv.imwrite('testImage' + str(index) + '.png', frame)
+        print('Image saved')
+        index = index + 1
 # When everything done, release the capture
 cap.release()
 cv.destroyAllWindows()
