@@ -16,7 +16,7 @@ import cv2
 # # grab the paths to the input images and initialize our images list
 # print("[INFO] loading images...")
 # imagePaths = sorted(list(paths.list_images(args["images"])))
-imagePaths = ['testImage0.png','testImage1.png','testImage2.png']
+imagePaths = ['capture0.png','capture1.png','capture2.png']
 images = []
 
 # loop over the image paths, load each one, and add them to our
@@ -25,7 +25,7 @@ for imagePath in imagePaths:
 	image = cv2.imread(imagePath)
 	images.append(image)
 
-print(images[0].shape)
+# print(images[0].shape)
 # initialize OpenCV's image stitcher object and then perform the image
 # stitching
 print("[INFO] stitching images...")

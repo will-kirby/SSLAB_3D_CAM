@@ -6,7 +6,7 @@ import imutils
 
 
 cameras = []
-for i in range(0,4):
+for i in range(0,3):
     cameras.append(cv.VideoCapture('/dev/video' + str(i)))
     if not cameras[i].isOpened():
         print("Cannot open camera " + str(i))
