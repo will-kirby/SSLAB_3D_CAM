@@ -2,6 +2,10 @@
 
 Code for stitching images for 360 degree camera
 
+# Pre-Alpha
+ Check the milestones folder for pre-alpha documentation
+
+
 ## Available Scripts
 
 ### python -m pip install -r requirements.txt
