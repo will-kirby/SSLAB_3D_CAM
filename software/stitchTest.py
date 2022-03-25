@@ -1,57 +1,43 @@
-# import the necessary packages
-from imutils import paths
+# https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html
+
 import numpy as np
-import argparse
+import cv2 as cv
 import imutils
-import cv2
 
-# # construct the argument parser and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--images", type=str, required=True,
-# 	help="path to input directory of images to stitch")
-# ap.add_argument("-o", "--output", type=str, required=True,
-# 	help="path to the output image")
-# args = vars(ap.parse_args())
+from statistics import mean
+import time
 
-# # grab the paths to the input images and initialize our images list
-# print("[INFO] loading images...")
-# imagePaths = sorted(list(paths.list_images(args["images"])))
+# cameras = []
+# for i in range(0,3):
+#     cameras.append(cv.VideoCapture('/dev/video' + str(i)))
+#     if not cameras[i].isOpened():
+#         print("Cannot open camera " + str(i))
+#         exit()
+
+# index = 0
+# for camera in cameras:
+#     ret, frame =  camera.read()
+#     cv.imwrite('capture' + str(index) + '.png', frame)
+#     camera.release()
+
+readTimes = []
 imagePaths = ['capture0.png','capture1.png','capture2.png']
+
 images = []
+for imagePath in imagePaths:
+	t1 = time.perf_counter_ns()
+	image = cv.imread(imagePath)
+	readTimes.append(time.perf_counter_ns() - t1)
+	images.append(image)
 
-# # loop over the image paths, load each one, and add them to our
-# # images to stitch list
-# for imagePath in imagePaths:
-# 	image = cv2.imread(imagePath)
-# 	images.append(image)
+print(f'Average read time: {mean(readTimes) / 1000000000} seconds')
 
-# print(images[0].shape)
+stitcher = cv.createStitcher() if imutils.is_cv3() else cv.Stitcher_create()
+t1 = time.perf_counter_ns()
+(status, stitched) = stitcher.stitch(images)
+print(f'Time to stitch images: {(time.perf_counter_ns() - t1) / 1000000000} seconds')
 
-# print(images[0].shape)
-# initialize OpenCV's image stitcher object and then perform the image
-# stitching
-
-def StitchImages(images):
-	'''
-	Inputs:
-	images: list of numpy arrays (mxnx3)
-	'''
-	stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
-	(status, stitched) = stitcher.stitch(images)
-
-	# if the status is '0', then OpenCV successfully performed image
-	# stitching
-	if status == 0:
-		print("[INFO] stitching images...")
-		# write the output stitched image to disk
-		# cv2.imwrite('stitchedImages.png', stitched)
-		# # display the output stitched image to our screen
-		# cv2.imshow("Stitched", stitched)
-		# cv2.waitKey(0)
-	# otherwise the stitching failed, likely due to not enough keypoints)
-	# being detected
-	else:
-		print("[INFO] image stitching failed ({})".format(status))
-
-	return stitched
-	
+# if the status is '0', then OpenCV successfully performed image
+if status == 0:
+	# write the output stitched image to disk
+	cv.imwrite('stitchedImage.png', stitched)
