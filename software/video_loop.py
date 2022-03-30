@@ -3,15 +3,19 @@
 import numpy as np
 import cv2 as cv
 
-cap = cv.VideoCapture(0)
-if not cap.isOpened():
+# from stitchTest import StitchImages
+
+# cameras = []
+
+camera_0 = cv.VideoCapture(0)
+if not camera_0.isOpened():
     print("Cannot open camera")
     exit()
 
 index = 0
 while True:
     # Capture frame-by-frame
-    ret, frame = cap.read()
+    ret, frame = camera_0.read()
     # if frame is read correctly ret is True
     if not ret:
         print("Can't receive frame (stream end?). Exiting ...")
@@ -25,9 +29,9 @@ while True:
         break
 
     if cv.waitKey(1) == ord('c'):
-        cv.imwrite('testImage' + str(index) + '.png', frame)
+        cv.imwrite('capture' + str(index) + '.png', frame)
         print('Image saved')
         index = index + 1
 # When everything done, release the capture
-cap.release()
+camera_0.release()
 cv.destroyAllWindows()
