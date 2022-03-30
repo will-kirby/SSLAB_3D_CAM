@@ -1,13 +1,15 @@
-# https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html
-
 import numpy as np
 import cv2 as cv
 import imutils
 
 
-# from stitchTest import StitchImages
+num_cameras = 3
+cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
-# cameras = []
+for i, camera in enumerate(cameras):
+    if not camera.isOpened():
+        print(f"Cannot open camera {i}")
+        exit()
 
 camera_0 = cv.VideoCapture(0)
 camera_1 = cv.VideoCapture(1)
@@ -54,9 +56,11 @@ while True:
         break
 
     if cv.waitKey(1) == ord('c'):
-        cv.imwrite('capture' + str(index) + '.png', frame)
-        print('Image saved')
-        index = index + 1
+        for i, frame in enumerate(frames):
+            cv.imwrite(f'capture{i}.png', frame)
+            print('Image saved')
+        break
+
 # When everything done, release the capture
 camera_0.release()
 camera_1.release()
