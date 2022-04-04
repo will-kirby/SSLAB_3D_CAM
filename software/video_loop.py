@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import imutils
 
+import time
 
 num_cameras = 3
 cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
@@ -11,45 +12,39 @@ for i, camera in enumerate(cameras):
         print(f"Cannot open camera {i}")
         exit()
 
-camera_0 = cv.VideoCapture(0)
-camera_1 = cv.VideoCapture(1)
-camera_2 = cv.VideoCapture(2)
-
-
-if not camera_0.isOpened():
-    print("Cannot open camera")
-    exit()
-
 stitcher = cv.createStitcher() if imutils.is_cv3() else cv.Stitcher_create()
 
+print("Press 'c' to capture image and quit")
+print("Press 'q' to quit")
 
-index = 0
+stitchTimes = []
+droppedFrames = 0
+
 while True:
+    frames = []
+
     # Capture frame-by-frame
-    ret, frame0 = camera_0.read()
-    frame0_disp = cv.resize(frame0, (240, 320))
-    ret, frame1 = camera_1.read()
-    frame1_disp = cv.resize(frame1, (240, 320))
-    ret, frame2 = camera_2.read()
-    frame2_disp = cv.resize(frame2, (240, 320))
+    for camera in cameras:
+        ret, frame = camera.read()
+        frames.append(cv.resize(frame, (240, 320)))
+        # if frame is read correctly ret is True
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
 
-    # print("Cam 1",frame0.shape,"Cam 2",frame1.shape)
-
-    
-    # if frame is read correctly ret is True
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
-        break
-    # Our operations on the frame come here
-        #gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
     # Display the resulting frame
-    cv.imshow('raw camera', np.concatenate((frame0_disp, frame1_disp, frame2_disp), axis=1))
+    cv.imshow('raw camera', np.concatenate(frames, axis=1))
     
-    (status, stitched) = stitcher.stitch((frame0, frame1, frame2))
+    # Our operations on the frame come here
+    timeStart = time.perf_counter()
+    (status, stitched) = stitcher.stitch(frames)
+    stitchTimes.append(time.perf_counter() - timeStart)
     
     if status==0:
         cv.imshow('stitched', stitched)
+    else:
+        droppedFrames += 1
 
 
     if cv.waitKey(1) == ord('q'):
@@ -61,8 +56,10 @@ while True:
             print('Image saved')
         break
 
+print(f'Average stitch time {np.mean(stitchTimes)}')
+
 # When everything done, release the capture
-camera_0.release()
-camera_1.release()
+for camera in cameras:
+    camera.release()
 
 cv.destroyAllWindows()
