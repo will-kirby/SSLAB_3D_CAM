@@ -59,10 +59,11 @@ while True:
     # Our operations on the frame come here
     timeStart = time.perf_counter()
     (status, stitched) = stitcher.stitch(frames)
-    stitchTimes.append(time.perf_counter() - timeStart)
+    
     
     if status==0:
         cv.imshow('stitched', stitched)
+        stitchTimes.append(time.perf_counter() - timeStart)
 
     stitcherStatuses.append(status)
 
@@ -84,10 +85,14 @@ cv.destroyAllWindows()
 
 # performance reporting
 print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
-print(f'Average stitch time {np.mean(stitchTimes)}')
+mean = np.mean(stitchTimes)
 
 plt.hist(stitchTimes, density=True)
-plt.title('Stitch Times')
+plt.axvline(mean, color='k', linestyle='dashed', linewidth=1,label=(f'mean={mean}'))
+plt.title(f'Stitch Times: Percentage of dropped frames: {100*np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
 plt.ylabel('Density')
 plt.xlabel('Time (seconds)')
+plt.legend()
+plt.savefig('../figures/Stitch_Time_Hist_case.png')
+
 plt.show()
