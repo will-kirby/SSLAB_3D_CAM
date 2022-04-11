@@ -3,9 +3,29 @@ import cv2 as cv
 import imutils
 
 import time
+# import matplotlib.pyplot as plt
 
-num_cameras = 3
-cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
+# # construct the argument parser and parse the arguments
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-i", "--images", type=str, required=True,
+# 	help="path to input directory of images to stitch")
+# ap.add_argument("-o", "--output", type=str, required=True,
+# 	help="path to the output image")
+# args = vars(ap.parse_args())
+
+# # grab the paths to the input images and initialize our images list
+# print("[INFO] loading images...")
+# imagePaths = sorted(list(paths.list_images(args["images"])))
+
+num_cameras = 2
+cameras = None
+
+jetson = False
+
+if jetson:
+    cameras = [cv.VideoCapture(f'dev/video{i}') for i in range(num_cameras)]
+else:
+    cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
 for i, camera in enumerate(cameras):
     if not camera.isOpened():
@@ -18,7 +38,7 @@ print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
 
 stitchTimes = []
-droppedFrames = 0
+stitcherStatuses = []
 
 while True:
     frames = []
@@ -43,9 +63,8 @@ while True:
     
     if status==0:
         cv.imshow('stitched', stitched)
-    else:
-        droppedFrames += 1
 
+    stitcherStatuses.append(status)
 
     if cv.waitKey(1) == ord('q'):
         break
@@ -56,7 +75,12 @@ while True:
             print('Image saved')
         break
 
+vals, counts = np.unique(stitcherStatuses, return_counts=True)
+print(f'Percentage of dropped frames: {100 * counts[1] / np.sum(counts)}%')
 print(f'Average stitch time {np.mean(stitchTimes)}')
+
+# plt.figure()
+
 
 # When everything done, release the capture
 for camera in cameras:
