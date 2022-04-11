@@ -3,7 +3,7 @@ import cv2 as cv
 import imutils
 
 import time
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # # construct the argument parser and parse the arguments
 # ap = argparse.ArgumentParser()
@@ -79,7 +79,7 @@ vals, counts = np.unique(stitcherStatuses, return_counts=True)
 print(f'Percentage of dropped frames: {100 * counts[1] / np.sum(counts)}%')
 print(f'Average stitch time {np.mean(stitchTimes)}')
 
-# plt.figure()
+plt.hist(stitchTimes)
 
 
 # When everything done, release the capture
