@@ -72,18 +72,19 @@ while True:
     if cv.waitKey(1) == ord('c'):
         for i, frame in enumerate(frames):
             cv.imwrite(f'capture{i}.png', frame)
-            print('Image saved')
+            print(f'capture{i}.png saved')
         break
-
-vals, counts = np.unique(stitcherStatuses, return_counts=True)
-print(f'Percentage of dropped frames: {100 * counts[1] / np.sum(counts)}%')
-print(f'Average stitch time {np.mean(stitchTimes)}')
-
-plt.hist(stitchTimes)
-
 
 # When everything done, release the capture
 for camera in cameras:
     camera.release()
 
 cv.destroyAllWindows()
+
+
+# performance reporting
+print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / stitcherStatuses.size}%')
+print(f'Average stitch time {np.mean(stitchTimes)}')
+
+plt.hist(stitchTimes)
+plt.show()
