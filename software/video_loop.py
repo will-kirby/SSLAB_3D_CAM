@@ -18,14 +18,20 @@ import matplotlib.pyplot as plt
 # imagePaths = sorted(list(paths.list_images(args["images"])))
 
 num_cameras = 2
-cameras = None
+cameras = []# None
 
 jetson = False
 
 if jetson:
     cameras = [cv.VideoCapture(f'dev/video{i}') for i in range(num_cameras)]
 else:
-    cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
+    for i in range(num_cameras):
+        camera = cv.VideoCapture(i)
+        camera.set(3, 320)# width
+        camera.set(3, 240)# height
+        cameras.append(camera)
+
+    #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
 for i, camera in enumerate(cameras):
     if not camera.isOpened():
@@ -44,14 +50,15 @@ while True:
     frames = []
 
     # Capture frame-by-frame
-    for camera in cameras:
+    for i, camera in enumerate(cameras):
         ret, frame = camera.read()
-        frames.append(cv.resize(frame, (240, 320)))
+        frames.append(frame)
         # if frame is read correctly ret is True
         if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
+            print(f"Can't receive frame (stream end?). Exiting ...{i}")
             break
-
+    if not ret:
+        continue
 
     # Display the resulting frame
     cv.imshow('raw camera', np.concatenate(frames, axis=1))
