@@ -83,8 +83,11 @@ cv.destroyAllWindows()
 
 
 # performance reporting
-print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / stitcherStatuses.size}%')
+print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
 print(f'Average stitch time {np.mean(stitchTimes)}')
 
-plt.hist(stitchTimes)
+plt.hist(stitchTimes, density=True)
+plt.title('Stitch Times')
+plt.ylabel('Density')
+plt.xlabel('Time (seconds)')
 plt.show()
