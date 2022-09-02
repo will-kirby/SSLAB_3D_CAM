@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import sys
+from time import sleep
 
 if len(sys.argv) < 2:
     print("Please specify a camera to open")
@@ -9,27 +10,28 @@ if len(sys.argv) < 2:
 number = sys.argv[1]
 print(f'Opening camera {number}')
 
-camera = cv.VideoCapture(number)
+camera = cv.VideoCapture(f'/dev/video{number}')
 camera.set(3, 200)
 
 if not camera.isOpened():
     print(f"Cannot open camera {number}")
 else:
-    print("Reading. Press 'q' to exit")
+    print(f"Reading camera {number}. Press 'q' to exit")
 
 while True:
-    frames = []
 
     # Capture frame-by-frame
     ret, frame = camera.read()
-    frames.append(frame)
     # if frame is read correctly ret is True
     if not ret:
-        print(f"Can't receive frame (stream end?). Exiting ...{i}")
+        print(f"Can't receive frame (stream end?). Exiting...")
         break
 
     # Display the resulting frame
-    cv.imshow('raw camera', np.concatenate(frames, axis=1))
+    cv.imshow(f'raw camera {number}', frame)
+    #print("captured frame")
+	
+    sleep(1)
 
     if cv.waitKey(1) == ord('q'):
         break
