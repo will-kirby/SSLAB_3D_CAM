@@ -11,7 +11,11 @@ number = sys.argv[1]
 print(f'Opening camera {number}')
 
 camera = cv.VideoCapture(f'/dev/video{number}')
-camera.set(3, 200)
+# camera.set(3, 200)
+camera.set(cv.CAP_PROP_FPS, 15)
+camera.set(cv.CV_CAP_PROP_FRAME_WIDTH, 320)
+camera.set(cv.CV_CAP_PROP_FRAME_HEIGHT, 240)
+camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
 if not camera.isOpened():
     print(f"Cannot open camera {number}")
