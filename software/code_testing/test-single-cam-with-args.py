@@ -1,10 +1,14 @@
-# doesn't seem to work, I was getting "Cannot open camera every time...."
-
 import sys
 import cv2 as cv
+import argparse
+
+parser = argparse.ArgumentParser(description='Change Camera Recording Parameters.')
+parser.add_argument('camera', metavar='X', type=int, help='Choose which camera to open')
+#parser.add_argument('--duration', metavar='X.XX', type=float, )
+args = parser.parse_args()
 
 # print(sys.argv[1],sys.argv[2])
-camNum = sys.argv[1]
+camNum = args.camera
 camera = cv.VideoCapture(camNum)
 if not camera.isOpened():
     print(f"Cannot open camera {camNum}")
