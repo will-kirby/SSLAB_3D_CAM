@@ -17,6 +17,25 @@ import matplotlib.pyplot as plt
 # print("[INFO] loading images...")
 # imagePaths = sorted(list(paths.list_images(args["images"])))
 
+# GPIO library
+import Jetson.GPIO as GPIO
+ 
+# Handles time
+import time 
+ 
+# Pin Definition
+led_pin = 12
+ 
+# Set up the GPIO channel
+GPIO.setmode(GPIO.BOARD) 
+GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.HIGH) 
+ 
+print("Press CTRL+C when you want the LED to stop blinking") 
+
+
+GPIO.output(led_pin, GPIO.HIGH) 
+print("LED is ON")
+
 num_cameras = 2
 cameras = []# None
 

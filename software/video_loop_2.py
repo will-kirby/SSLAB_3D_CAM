@@ -9,7 +9,8 @@ num_cameras = 2
 cameras = []# None
 
 for i in range(num_cameras):
-  camera = cv.VideoCapture(i)
+  print(i)
+  camera = cv.VideoCapture('/dev/video'+str(i))
   camera.set(3, 320)# width
   camera.set(3, 240)# height
   cameras.append(camera)
@@ -72,7 +73,7 @@ cv.destroyAllWindows()
 
 
 # performance reporting
-print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
+print('Percentage of dropped frames: '+str(100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses))+'%')
 mean = np.mean(stitchTimes)
 
 plt.hist(stitchTimes, density=True)

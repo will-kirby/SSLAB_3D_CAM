@@ -12,7 +12,28 @@ import imutils
 camera_0 = cv.VideoCapture(0)
 camera_1 = cv.VideoCapture(1)
 camera_2 = cv.VideoCapture(2)
+camera_3 = cv.VideoCapture(3)
 
+
+camera_0.set(cv.CAP_PROP_FPS, 30)
+camera_0.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+camera_0.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+camera_0.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+
+camera_1.set(cv.CAP_PROP_FPS, 30)
+camera_1.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+camera_1.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+camera_1.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+
+camera_2.set(cv.CAP_PROP_FPS, 30)
+camera_2.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+camera_2.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+camera_2.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+
+camera_3.set(cv.CAP_PROP_FPS, 30)
+camera_3.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+camera_3.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+camera_3.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
 if not camera_0.isOpened():
     print("Cannot open camera")
@@ -30,6 +51,8 @@ while True:
     frame1_disp = cv.resize(frame1, (240, 320))
     ret2, frame2 = camera_2.read()
     frame2_disp = cv.resize(frame2, (240, 320))
+    ret3, frame3 = camera_3.read()
+    frame3_disp = cv.resize(frame3, (240, 320))
 
     # print("Cam 1",frame0.shape,"Cam 2",frame1.shape)
 
@@ -40,9 +63,9 @@ while True:
         break
 
     # Display the resulting frame
-    cv.imshow('raw camera', np.concatenate((frame0_disp, frame1_disp, frame2_disp), axis=1))
+    cv.imshow('raw camera', np.concatenate((frame0_disp, frame1_disp, frame2_disp, frame3_disp), axis=1))
     
-    (status, stitched) = stitcher.stitch((frame0, frame1, frame2))
+    (status, stitched) = stitcher.stitch((frame0, frame1, frame2, frame3))
     
     if status==0:
         cv.imshow('stitched', stitched)
@@ -55,6 +78,7 @@ while True:
 camera_0.release()
 camera_1.release()
 camera_2.release()
+camera_3.release()
 
 
 cv.destroyAllWindows()

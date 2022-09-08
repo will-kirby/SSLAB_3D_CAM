@@ -11,7 +11,11 @@ cameras = []
 num_cameras = 4 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
 for i in range(num_cameras):
     camera = cv.VideoCapture(i)
-    camera.set(3, 200)# width
+    #camera.set(3, 200)# width
+    camera.set(cv.CAP_PROP_FPS, 30)
+    camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+    camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+    camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     cameras.append(camera)
 
     #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
