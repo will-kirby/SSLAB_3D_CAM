@@ -28,15 +28,21 @@ for i in range(num_cameras):
         camera.set(3, 200)# width
 
     cameras.append(camera)
+#cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
-    #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
+if reverseCams:
+    cameras.reverse()
 print("Cameras constructed")
+
+
 
 for i, camera in enumerate(cameras):
     if not camera.isOpened():
         print(f"Cannot open camera {i}")
         exit()
 print(f"{num_cameras} successfully opened")
+
+
 
 
 # print("Press 'c' to capture image and quit")
@@ -50,7 +56,7 @@ while True:
     # Capture frame-by-frame
     for i, camera in enumerate(cameras):
         ret, frame = camera.read()
-        frame = cv2.resize(frame, dsize=(newheight, newWidth), interpolation=cv2.INTER_LINEAR) # make it bigger
+        frame = cv.resize(frame, dsize=(newheight, newWidth), interpolation=cv2.INTER_LINEAR) # make it bigger
         frames.append(frame)
         # if frame is read correctly ret is True
         if not ret:
