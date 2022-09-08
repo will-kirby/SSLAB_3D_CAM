@@ -8,16 +8,19 @@ import cv2 as cv
 import numpy as np
 
 cameras = []
-num_cameras = 4 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
+num_cameras = 6 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
 startIndex = 0 # if on laptop, avoid the webcam (0 for jetson)
-compress = 0 # change whether to use the compressed camera feed
+compress = 1 # change whether to use the compressed camera feed
+reverseCams = 1 # reverse the camera order
+newheight = 480
+newWidth = 640
 
 print("Staring program...")
-print(f"Number of cameras={num_cameras}, Starting Index={startIndex}, Compress camera feed={compress}")
+print(f"Number_of_cameras={num_cameras}, Starting_Index={startIndex}, Compress_camera_feed={compress}, Reverse_Cameras={reverseCams}")
 for i in range(num_cameras):
     camera = cv.VideoCapture(i+startIndex)
     if compress:
-        camera.set(cv.CAP_PROP_FPS, 30)
+        camera.set(cv.CAP_PROP_FPS, 15)
         camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
         camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
         camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
@@ -47,6 +50,7 @@ while True:
     # Capture frame-by-frame
     for i, camera in enumerate(cameras):
         ret, frame = camera.read()
+        frame = cv2.resize(frame, dsize=(newheight, newWidth), interpolation=cv2.INTER_LINEAR) # make it bigger
         frames.append(frame)
         # if frame is read correctly ret is True
         if not ret:
@@ -66,8 +70,7 @@ while True:
     cv.imshow('pushed images', pushedImages)
 
 
-    if cv.waitKey(1) == ord('q'):
-        break
+    
 
     # if cv.waitKey(1) == ord('c'):
     #     for i, frame in enumerate(frames):
@@ -78,6 +81,9 @@ while True:
     if cv.waitKey(1) == ord('s'):
         shiftAmount += 5
         print(f"Incrementing shift amount, current amount: {shiftAmount}")
+
+    if cv.waitKey(2) == ord('q'):
+        break
 
 # When everything done, release the capture
 for camera in cameras:
