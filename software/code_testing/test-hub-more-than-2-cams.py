@@ -7,15 +7,20 @@
 import cv2 as cv
 import numpy as np
 
+compress = 1
+
 cameras = []
 num_cameras = 4 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
 for i in range(num_cameras):
     camera = cv.VideoCapture(i)
-    #camera.set(3, 200)# width
-    camera.set(cv.CAP_PROP_FPS, 30)
-    camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-    camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
-    camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+    if compress:
+        camera.set(cv.CAP_PROP_FPS, 30)
+        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+    else:
+        camera.set(3, 200)# width
+
     cameras.append(camera)
 
     #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
@@ -25,9 +30,11 @@ for i, camera in enumerate(cameras):
         print(f"Cannot open camera {i}")
         exit()
 
-print("Press 'c' to capture image and quit")
+# print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
+print("Press 's' to push images together")
 
+shiftAmount = 0
 while True:
     frames = []
 
@@ -43,6 +50,15 @@ while True:
     # Display the resulting frame
     cv.imshow('raw camera', np.concatenate(frames, axis=1))
 
+    # calculate pushed (shape[0] is height, shape[1] is width)
+    pushedImages = np.zeros(max([frame.shape[0] for frame in frames], sum([frame.shape[1] for frame in frames])))
+    currentWidth = 0
+    for i, frame in enumerate(frames):
+        pushedImages[0:frame.shape[0], (currentWidth-shiftAmount*i):(frame.shape[1]-shiftAmount*i)] = frame
+        currentWidth += (frame.shape[1] - shiftAmount)
+    cv.imshow('pushed images', pushedImages)
+
+
     if cv.waitKey(1) == ord('q'):
         break
 
@@ -52,6 +68,9 @@ while True:
     #         print(f'capture{i}.png saved')
     #     break
 
+    if cv.waitKey(1) == ord('s'):
+        shiftAmount += 5
+        print(f"Incrementing shift amount, current amount: {shiftAmount}")
 
 # When everything done, release the capture
 for camera in cameras:
