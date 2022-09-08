@@ -14,6 +14,8 @@ compress = 1 # change whether to use the compressed camera feed
 reverseCams = 1 # reverse the camera order
 newheight = 480
 newWidth = 640
+shiftAmount = 56
+
 
 print("Staring program...")
 print(f"Number_of_cameras={num_cameras}, Starting_Index={startIndex}, Compress_camera_feed={compress}, Reverse_Cameras={reverseCams}")
@@ -49,7 +51,6 @@ print(f"{num_cameras} successfully opened")
 print("Press 'q' to quit")
 print("Press 's' to push images together")
 
-shiftAmount = 0
 while True:
     frames = []
 
@@ -85,7 +86,7 @@ while True:
     #     break
 
     if cv.waitKey(1) == ord('s'):
-        shiftAmount += 5
+        shiftAmount += 2
         print(f"Incrementing shift amount, current amount: {shiftAmount}")
 
     if cv.waitKey(2) == ord('q'):
