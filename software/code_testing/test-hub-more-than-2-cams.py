@@ -57,7 +57,7 @@ while True:
     # Capture frame-by-frame
     for i, camera in enumerate(cameras):
         ret, frame = camera.read()
-        frame = cv.resize(frame, dsize=(newheight, newWidth), interpolation=cv2.INTER_LINEAR) # make it bigger
+        frame = cv.resize(frame, dsize=(newheight, newWidth), interpolation=cv.INTER_LINEAR) # make it bigger
         frames.append(frame)
         # if frame is read correctly ret is True
         if not ret:
