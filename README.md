@@ -113,9 +113,7 @@ For physical artifacts, there is a hardshell plastic casing that protects the ca
 
 The program contains a GUI, also a window with a real-time display of the stitched image
 
-#### Persistent State
-
-For each major use case, there must be a demonstration of the use of a data store in the system. This must connect to the external interface and the internal systems.
+#### Persistent State.
 
 On the GUI script button press, the primary video_loop script is called. Upon completion, it saves an image or video output. This output is then utilized by the GUI script after it is available to display the output image/video.
 
