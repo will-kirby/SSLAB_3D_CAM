@@ -106,19 +106,20 @@ for camera in cameras:
 
 cv.destroyAllWindows()
 
-# performance reporting
-print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
-mean = np.mean(stitchTimes)
+# Deprecated for log parsing
+# # performance reporting
+# print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
+# mean = np.mean(stitchTimes)
 
-plt.hist(stitchTimes, density=True)
-plt.axvline(mean, color='k', linestyle='dashed', linewidth=1,label=(f'mean={mean}'))
-plt.title(f'Stitch Times: Percentage of dropped frames: {100*np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
-plt.ylabel('Density')
-plt.xlabel('Time (seconds)')
-plt.legend()
-plt.savefig('../figures/Stitch_Time_Hist_case.png')
+# plt.hist(stitchTimes, density=True)
+# plt.axvline(mean, color='k', linestyle='dashed', linewidth=1,label=(f'mean={mean}'))
+# plt.title(f'Stitch Times: Percentage of dropped frames: {100*np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
+# plt.ylabel('Density')
+# plt.xlabel('Time (seconds)')
+# plt.legend()
+# plt.savefig('../figures/Stitch_Time_Hist_case.png')
 
-plt.show()
+# plt.show()
 
 
 # Begin File Transfer
