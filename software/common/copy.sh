@@ -40,10 +40,3 @@ esac
 
 
 scp "${sourcefile}" "${username}@${ip_address}:${destdir}${remote_filename}"
-
-
-
-
-		
-
-
