@@ -1,13 +1,15 @@
 import cv2 as cv
 import numpy as np
+import matplotlib.pyplot as plt
 
 class CameraSystem:
     cameras = []
     cameraIndexList = None
     homographyMatrix = None
+    overlapAmount = 56
     
 
-    def __init__(self, cameraIndexList, compressCameraFeed=True):
+    def __init__(self, cameraIndexList=[], compressCameraFeed=True):
         # cameraIndexList is either a range or a list of the camera indices
 
         self.cameraIndexList = list(cameraIndexList)
@@ -56,13 +58,13 @@ class CameraSystem:
             cv.imwrite(fileName, frame)
 
     def readFramesFromFiles(self, fileNames, basePath=""):
-        return [cv.imread(name) for name in fileNames]
+        return [cv.imread(basePath + name) for name in fileNames]
 
-    def calculateHomographyMatrices(self):
-        frames = self.captureCameraImages()
-
-    def _framesToGrayScale(self, frames):
-        return [cv.cvtColor(frame,cv.COLOR_BGR2GRAY) for frame in frames]
+    def reorderCams(newOrderIndexList):
+        # pass the index of each camera in the new order -> if want 3rd index first, pass in [3, ..]
+        if max(newOrderIndexList) >= len(self.cameras):
+            raise Exception("Bad new order passed in, index out of bounds")
+        self.cameras[:] = [self.cameras[i] for i in list(newOrderIndexList)]
 
     def _findKPandDesSingle(self, frame):
         sift = cv.SIFT_create()
@@ -72,7 +74,7 @@ class CameraSystem:
         
     def _findKPandDesMultiple(self, frames):
         sift = cv.SIFT_create()
-        grays = self._framesToGrayScale(frames)
+        grays = [cv.cvtColor(frame,cv.COLOR_BGR2GRAY) for frame in frames]
         framesKpsList = []
         framesDescripList = []
         for grayFrame in grays:
@@ -84,7 +86,7 @@ class CameraSystem:
 
         return (framesKpsList, framesDescripList)
 
-    def _matchDescriptorsWithFilter(descriptors1, descriptors2):
+    def matchDescriptors(self, descriptors1, descriptors2):
         # Brute Force Matcher with default params
         bf = cv.BFMatcher()
         matches = bf.knnMatch(descriptors1,descriptors2,k=2)
@@ -93,16 +95,79 @@ class CameraSystem:
         goodMatches = []
         for m,n in matches:
             if m.distance < 0.75*n.distance:
-                goodMatches.append([m])
+                goodMatches.append(m)
+        return goodMatches
+
+    def findHomographyFromMatched(self, goodMatches, kp1, kp2):
+        MIN_MATCH_COUNT = 10 # minimum of 10 matches to start stitching
+        if len(goodMatches)>MIN_MATCH_COUNT:
+            src_pts = np.float32([ kp1[m.queryIdx].pt for m in goodMatches ]).reshape(-1,1,2)
+            dst_pts = np.float32([ kp2[m.trainIdx].pt for m in goodMatches ]).reshape(-1,1,2)
+            M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)
+            matchesMask = mask.ravel().tolist()
+            print(M, matchesMask)
+        else:
+            print( "Not enough matches are found - {}/{}".format(len(goodMatches), MIN_MATCH_COUNT) )
+            matchesMask = None
+            M = None
+
+        return (M, matchesMask)
+
+    def homographyStitch(self, img1, img2, H):
+        dst = cv.warpPerspective(img1,H,((img1.shape[1] + img2.shape[1]), img2.shape[0])) # warp the first image
+        plt.imshow(dst)
+        plt.show()
+
+        dst[0:img2.shape[0], 0:img2.shape[1]] = img2 #plop the second down
+        return dst
 
 
-    def stitchCameras(self, stitchType):
+    def overlapStitch(self, frames, overlapAmount=None):
+        if overlapAmount:
+            shiftAmount = overlapAmount
+        else:
+            shiftAmount = self.overlapAmount
+        overlappedImage = np.zeros((max([frame.shape[0] for frame in frames]), sum([frame.shape[1] for frame in frames]), 3), dtype="uint8" )
+    
+        currentWidth = 0
+        for i, frame in enumerate(frames):
+            overlappedImage[0:frame.shape[0], (currentWidth-shiftAmount*i):(currentWidth + frame.shape[1]-shiftAmount*i)] = frame
+            currentWidth += (frame.shape[1] - shiftAmount)
+
+        return overlappedImage
+
+    def fishEyeTransform(frame):
+        # TBD. I think this is really important. If you apply fisheye to each image,
+        # may just be able to shift the images together
+
         pass
+
+    def drawMatches(self, img1, kp1, img2, kp2, goodMatches, matchesMask=None, displayImage=True):
+        # if matchesMask is provided (from homography matrix step) then the matches will be
+        # filtered down to more exact ones
+
+        if matchesMask:
+            draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+                    singlePointColor = None,
+                    matchesMask = matchesMask, # draw only inliers
+                    flags = 2)
+            img = cv.drawMatches(img1,kp1,img2,kp2,goodMatches,None,**draw_params)
+        else:
+            # cv.drawMatchesKnn expects list of lists as matches.
+            goodMatches = [[m] for m in goodMatches]
+            img = cv.drawMatchesKnn(img1,kp1,img2,kp2,goodMatches,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        
+        if displayImage:
+            plt.imshow(img),plt.show()
+            
+        return img
 
 if __name__ == "__main__":
     print("Constructing camera system")
     # cam = CameraSystem([0],False)
+    # cam = CameraSystem([0,1],compressCameraFeed=False)
     cam = CameraSystem([],compressCameraFeed=False)
+
 
     # print("capturing images")
     # frames = cam.captureCameraImages()
@@ -111,8 +176,19 @@ if __name__ == "__main__":
     # cam.writeFramesToFile(frames)
 
     print("Reading camera images")
-    frames = cam.readFramesFromFiles(["software/code_testing/testImage0.jpg"])
-    kp, des = cam._findKPandDesSingle(frames[0])
+    # frames = cam.readFramesFromFiles(["testImage1.jpg", "testImage0.jpg"],"code_testing/")
+    frames = cam.readFramesFromFiles(["capture0.png", "capture1.png"],"functionality_testing/")
 
-    img3 = cv.drawKeypoints(frames[0], kp, None, color=(255,0,0))
-    cv.imwrite('image0KP.jpg', img3)
+    kp, des = cam._findKPandDesMultiple(frames)
+    goodMatches = cam.matchDescriptors(des[0], des[1])
+    # cam.drawMatches(frames[0], kp[0], frames[1], kp[1], goodMatches)
+
+    H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[0], kp[1])
+    # cam.drawMatches(frames[0], kp[0], frames[1], kp[1], goodMatches, matchesMask)
+
+    # cam.homographyStitch(frames[0], frames[1], H)
+
+    # cam.overlapStitch(frames)
+
+    # img3 = cv.drawKeypoints(frames[0], kp, None, color=(255,0,0))
+    # cv.imwrite('image0KP.jpg', img3)
