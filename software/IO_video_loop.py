@@ -1,21 +1,19 @@
 import numpy as np
 import cv2 as cv
 import imutils
-
 import time
 import matplotlib.pyplot as plt
+import subprocess
+import sys
+import argparse
 
-# # construct the argument parser and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--images", type=str, required=True,
-# 	help="path to input directory of images to stitch")
-# ap.add_argument("-o", "--output", type=str, required=True,
-# 	help="path to the output image")
-# args = vars(ap.parse_args())
-
-# # grab the paths to the input images and initialize our images list
-# print("[INFO] loading images...")
-# imagePaths = sorted(list(paths.list_images(args["images"])))
+parser = argparse.ArgumentParser(description='Panorama Camera application')
+parser.add_argument('-c', '--cameras', type=int, default=2,
+help='Specify the amount of cameras')
+parser.add_argument('-d', '--duration', type=int, default=10,
+help='Specify the duration in seconds to run the test')
+parser.add_argument('-d', '--image', action='store_true', default=False,
+help='Flag to take one image')
 
 # GPIO library
 import Jetson.GPIO as GPIO
@@ -31,7 +29,6 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.HIGH) 
  
 print("Press CTRL+C when you want the LED to stop blinking") 
-
 
 GPIO.output(led_pin, GPIO.HIGH) 
 print("LED is ON")
@@ -109,16 +106,23 @@ for camera in cameras:
 
 cv.destroyAllWindows()
 
-# performance reporting
-print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
-mean = np.mean(stitchTimes)
+# Deprecated for log parsing
+# # performance reporting
+# print(f'Percentage of dropped frames: {100 * np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
+# mean = np.mean(stitchTimes)
 
-plt.hist(stitchTimes, density=True)
-plt.axvline(mean, color='k', linestyle='dashed', linewidth=1,label=(f'mean={mean}'))
-plt.title(f'Stitch Times: Percentage of dropped frames: {100*np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
-plt.ylabel('Density')
-plt.xlabel('Time (seconds)')
-plt.legend()
-plt.savefig('../figures/Stitch_Time_Hist_case.png')
+# plt.hist(stitchTimes, density=True)
+# plt.axvline(mean, color='k', linestyle='dashed', linewidth=1,label=(f'mean={mean}'))
+# plt.title(f'Stitch Times: Percentage of dropped frames: {100*np.count_nonzero(stitcherStatuses) / len(stitcherStatuses)}%')
+# plt.ylabel('Density')
+# plt.xlabel('Time (seconds)')
+# plt.legend()
+# plt.savefig('../figures/Stitch_Time_Hist_case.png')
 
-plt.show()
+# plt.show()
+
+
+# Begin File Transfer
+args = sys.argv
+args[0] = "../common/copy.sh" # path to shell script
+subprocess.check_call(args)
