@@ -17,7 +17,6 @@ parser.add_argument('-i', '--image', action='store_true', default=False,
 help='Flag to take one image')
 
 
-
 # GPIO library
 import Jetson.GPIO as GPIO
  
@@ -139,7 +138,13 @@ cv.destroyAllWindows()
 # plt.show()
 
 #Begin File Transfer
-args = sys.argv
-args[0] = "./common/copy.sh" # path to shell script
-print("Trasnfering file " + args[2])
+args = ["./common/copy.sh", 'Alan', 'test_stitched_vid.avi']
+#args[0] = "./common/copy.sh" # path to shell script
+#if len(sys.argv) < 1:
+#args[1] = 'Alan'
+#args[2] = 'test_stitched_vid.avi'
+
+
+
+print("Transfering file " + args[2])
 subprocess.check_call(args)
