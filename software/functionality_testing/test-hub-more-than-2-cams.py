@@ -8,7 +8,7 @@ import cv2 as cv
 import numpy as np
 
 cameras = []
-num_cameras = 2 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
+num_cameras = 3# on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
 startIndex = 0 # if on laptop, avoid the webcam (0 for jetson)
 compress = 1 # change whether to use the compressed camera feed
 reverseCams = 1 # reverse the camera order
@@ -47,7 +47,7 @@ print(f"{num_cameras} successfully opened")
 
 
 
-# print("Press 'c' to capture image and quit")
+print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
 print("Press 's' to push images together")
 
@@ -89,8 +89,8 @@ while True:
     #    shiftAmount += 2
      #   print(f"Incrementing shift amount, current amount: {shiftAmount}")
 
-   # if cv.waitKey(2) == ord('q'):
-     #   break
+    if cv.waitKey(2) == ord('q'):
+        break
 
 # When everything done, release the capture
 for camera in cameras:

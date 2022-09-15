@@ -1,6 +1,8 @@
 import sys
-from PyQt6.QtWidgets import *
-from PyQt6.QtGui import QPixmap
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QPixmap
+import subprocess
+
 
 class App(QMainWindow):
     def __init__(self):
@@ -15,24 +17,35 @@ class App(QMainWindow):
         self.button1.clicked.connect(self.button_clicked_on)
         layout.addWidget(self.button1)
 
+        self.child = None
+        
+	#maybe take some user input for the following settings?
+        self.username = "Alan" #for copying: username on remote computer
+        self.file = "test_stitched_vid.avi" #file to copy from jetson
+        self.remotedir ="" #directory on remote machine to copy to
+        self.remotefilename="" #filename on remote machine
+        
+
     def button_clicked_on(self, proc):
         if self.button1.text() == "Start Recording":
             print("Started, input c")
             sys.argv[0] = 'c'
             self.button1.setText("Stop Recording")
             self.button1.clicked.connect(self.button_clicked_off)
-            import video_loop
+            #import IO_video_loop #causes critical errors due to giving main loop control
+            self.child = subprocess.Popen(['python3','IO_video_loop.py',self.username, self.file], stdin=subprocess.PIPE) #runs video loop in separate process
 
     def button_clicked_off(self):
         if self.button1.text() == "Stop Recording":
+            self.child.communicate(b'q') #sends q to IO_video_loop stdin
             print("Processing... will show image when done.")
-            self.button1.setText("Start Recording")
             sys.argv[0] = 'q'
+            self.button1.setText("Start Recording")
             self.button1.clicked.disconnect(self.button_clicked_off)
 
             # Outputting Image
             self.label = QLabel(self)
-            self.pixmap = QPixmap("./image.jpg")
+            self.pixmap = QPixmap("./test-capture0.png")
             self.label.setPixmap(self.pixmap)
             self.setCentralWidget(self.label)
             self.resize(self.pixmap.width(), self.pixmap.height())

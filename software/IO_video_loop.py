@@ -6,14 +6,17 @@ import matplotlib.pyplot as plt
 import subprocess
 import sys
 import argparse
+import select
 
 parser = argparse.ArgumentParser(description='Panorama Camera application')
 parser.add_argument('-c', '--cameras', type=int, default=2,
 help='Specify the amount of cameras')
 parser.add_argument('-d', '--duration', type=int, default=10,
 help='Specify the duration in seconds to run the test')
-parser.add_argument('-d', '--image', action='store_true', default=False,
+parser.add_argument('-i', '--image', action='store_true', default=False,
 help='Flag to take one image')
+
+
 
 # GPIO library
 import Jetson.GPIO as GPIO
@@ -43,11 +46,15 @@ if jetson:
 else:
     for i in range(num_cameras):
         camera = cv.VideoCapture(i)
-        camera.set(3, 320)# width
-        camera.set(3, 240)# height
+        camera.set(cv.CAP_PROP_FPS, 15)
+        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        #camera.set(3, 320)# width
+        #camera.set(3, 240)# height
         cameras.append(camera)
 
-    #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
+   # cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
 for i, camera in enumerate(cameras):
     if not camera.isOpened():
@@ -55,6 +62,9 @@ for i, camera in enumerate(cameras):
         exit()
 
 stitcher = cv.createStitcher() if imutils.is_cv3() else cv.Stitcher_create()
+
+#video = cv.VideoWriter('test_vid.avi', cv.VideoWriter_fourcc(*'MJPG'),30, (320,240))
+video = cv.VideoWriter('test_stitched_vid.avi', cv.VideoWriter_fourcc(*'MJPG'),3, (640,480) )
 
 print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
@@ -73,11 +83,13 @@ while True:
         if not ret:
             print(f"Can't receive frame (stream end?). Exiting ...{i}")
             break
+        #if(i == 1):
+          #  video.write(frame)
     if not ret:
         continue
 
     # Display the resulting frame
-    cv.imshow('raw camera', np.concatenate(frames, axis=1))
+    #cv.imshow('raw camera', np.concatenate(frames, axis=1))
     
     # Our operations on the frame come here
     timeStart = time.perf_counter()
@@ -85,14 +97,18 @@ while True:
     
     
     if status==0:
-        cv.imshow('stitched', stitched)
+        #cv.imshow('stitched', stitched)
         stitchTimes.append(time.perf_counter() - timeStart)
+        stitched_resize = cv.resize(stitched, (640,480))
+        video.write(stitched_resize)
+        print("stitched!")
+        
 
     stitcherStatuses.append(status)
-
+    if(select.select([sys.stdin,],[],[],0)[0] and sys.stdin.read(1) == 'q'): #poll stdin for a character (piped in from open_gui.py)
+        break
     if cv.waitKey(1) == ord('q'):
         break
-
     if cv.waitKey(1) == ord('c'):
         for i, frame in enumerate(frames):
             cv.imwrite(f'capture{i}.png', frame)
@@ -104,6 +120,7 @@ while True:
 for camera in cameras:
     camera.release()
 
+video.release();
 cv.destroyAllWindows()
 
 # Deprecated for log parsing
@@ -121,8 +138,8 @@ cv.destroyAllWindows()
 
 # plt.show()
 
-
-# Begin File Transfer
+#Begin File Transfer
 args = sys.argv
-args[0] = "../common/copy.sh" # path to shell script
+args[0] = "./common/copy.sh" # path to shell script
+print("Trasnfering file " + args[2])
 subprocess.check_call(args)
