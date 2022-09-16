@@ -1,7 +1,11 @@
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QUrl
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 import subprocess
+import time
 
 
 class App(QMainWindow):
@@ -16,6 +20,11 @@ class App(QMainWindow):
         self.button1 = QPushButton(parent=self, text="Start Recording")
         self.button1.clicked.connect(self.button_clicked_on)
         layout.addWidget(self.button1)
+        
+        self.video = QVideoWidget()
+        self.video.resize(320,240)
+        self.player = QMediaPlayer()
+        self.player.setVideoOutput(self.video)
 
         self.child = None
         
@@ -44,12 +53,23 @@ class App(QMainWindow):
             self.button1.clicked.disconnect(self.button_clicked_off)
 
             # Outputting Image
-            self.label = QLabel(self)
-            self.pixmap = QPixmap("./test-capture0.png")
-            self.label.setPixmap(self.pixmap)
-            self.setCentralWidget(self.label)
-            self.resize(self.pixmap.width(), self.pixmap.height())
-            self.show()
+            #self.label = QLabel(self)
+            #self.pixmap = QPixmap("./test-capture0.png")
+            #self.label.setPixmap(self.pixmap)
+            #self.setCentralWidget(self.label)
+            #self.resize(self.pixmap.width(), self.pixmap.height())
+            #self.show()
+            
+            #Play stitched video
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile("/home/lab/SSLAB_3D_CAM/software/test_stitched_vid.avi")))
+            self.player.setPosition(0)
+            self.video.show()
+            self.player.play()
+            self.player.mediaStatusChanged.connect(self.statusChanged)
+
+    def statusChanged(self, status):
+        if status == QMediaPlayer.EndOfMedia:
+           self.video.close()
 
     # handler for the signal aka slot
     def onClick(checked):
