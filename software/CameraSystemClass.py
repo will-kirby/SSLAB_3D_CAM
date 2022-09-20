@@ -118,6 +118,23 @@ class CameraSystem:
         dst[0:img2.shape[0], 0:img2.shape[1]] = img2 #plop the second down
         return dst
 
+    def tripleHomographyStitch(self, imgL, imgM, imgR, Hl, Hr):
+        dstRight = cv.warpPerspective(imgR,Hr,((imgM.shape[1] + imgR.shape[1]), imgR.shape[0])) # warp the first image
+        dstRight[0:imgM.shape[0], 0:imgM.shape[1]] = imgM #plop the second down
+        
+        imgL = np.flip(imgL,1)
+        imgM = np.flip(imgM,1)
+        dstLeft = cv.warpPerspective(imgL,Hl,((imgM.shape[1] + imgL.shape[1]), imgL.shape[0])) # warp the first image
+        dstLeft[0:imgM.shape[0], 0:imgM.shape[1]] = imgM #plop the second down
+        dstLeft = np.flip(dstLeft,1)
+
+        height = dstLeft.shape[0]
+        width = imgL.shape[1] + imgM.shape[1] + imgR.shape[1]
+        stitch = np.zeros((height, width, 3), dtype="uint8")
+        stitch[0:height, 0:dstLeft.shape[1]] = dstLeft
+        stitch[0:height, imgL.shape[1]:] = dstRight
+
+        return stitch
 
     def overlapStitch(self, frames, overlapAmount=None):
         if overlapAmount:
@@ -155,9 +172,19 @@ class CameraSystem:
         frames = self.captureCameraImages()
         kp, des = self._findKPandDesMultiple(frames)
         goodMatches = self.matchDescriptors(des[0], des[1])
-        H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[0], kp[1])
-        
+        H, matchesMask = self.findHomographyFromMatched(goodMatches, kp[0], kp[1])
+
         return H, matchesMask
+
+    def calibrateMatrixTriple(self, imgL, imgM, imgR):
+        # kp,des,and match: the parameters are the right image then left image, the right image then gets warped
+        kp, des = self._findKPandDesMultiple([imgR, imgM, np.flip(imgL,1), np.flip(imgM,1)])
+        goodMatchesRight = self.matchDescriptors(des[0], des[1])
+        Hright, matchesMask = self.findHomographyFromMatched(goodMatchesRight, kp[0], kp[1])
+        goodMatchesLeft = self.matchDescriptors(des[2], des[3])
+        Hleft, matchesMask = self.findHomographyFromMatched(goodMatchesLeft, kp[2], kp[3])
+
+        return Hleft, Hright
 
     def fishEyeTransform(self, frame):
         # TBD. I think this is really important. If you apply fisheye to each image,
@@ -181,9 +208,15 @@ class CameraSystem:
             img = cv.drawMatchesKnn(img1,kp1,img2,kp2,goodMatches,None,flags=cv.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
         
         if displayImage:
-            plt.imshow(img),plt.show()
+            plt.figure()
+            plt.imshow(img)
+            plt.show()
             
         return img
+
+
+
+
 
 if __name__ == "__main__":
     print("Constructing camera system")
@@ -200,16 +233,57 @@ if __name__ == "__main__":
 
     print("Reading camera images")
     # frames = cam.readFramesFromFiles(["testImage1.jpg", "testImage0.jpg"],"code_testing/")
-    frames = cam.readFramesFromFiles(["capture0.png", "capture1.png"],"functionality_testing/")
+    frames = cam.readFramesFromFiles(["capture0.png", "capture1.png","capture2.png"],"functionality_testing/")
 
-    kp, des = cam._findKPandDesMultiple(frames)
-    goodMatches = cam.matchDescriptors(des[0], des[1])
-    # cam.drawMatches(frames[0], kp[0], frames[1], kp[1], goodMatches)
+    # triple pano
+    Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+    dst = cam.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
+    plt.imshow(dst)
+    plt.show()
 
-    H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[0], kp[1])
-    # cam.drawMatches(frames[0], kp[0], frames[1], kp[1], goodMatches, matchesMask)
 
-    # cam.homographyStitch(frames[0], frames[1], H)
+
+
+    # kp, des = cam._findKPandDesMultiple(frames)
+
+    # imageA = 2
+    # imageB = 1
+    # goodMatches = cam.matchDescriptors(des[imageA], des[imageB])
+    # H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[imageA], kp[imageB])
+    # # matched = cam.drawMatches(frames[imageA], kp[imageA], frames[imageB], kp[imageB], goodMatches, matchesMask, False)
+    # # dst = cam.homographyStitch(frames[imageA], frames[imageB], H)
+    # # plt.figure()
+    # # plt.subplot(211)
+    # # plt.imshow(matched)
+
+    # # plt.subplot(212)
+    # # plt.imshow(dst)
+    # # plt.show()
+
+    # imageA = 0
+    # imageB = 1
+    # frames = list(map(lambda ar : np.flip(ar,1), frames[0:2]))
+    # frames = [np.flip(frames[0],1), np.flip(frames[1],1)]
+    # plt.figure()
+    # plt.subplot(221)
+    # plt.imshow(frames[0])
+    # plt.subplot(222)
+    # plt.imshow(frames[1])
+
+    # kp, des = cam._findKPandDesMultiple(frames)
+    # goodMatches = cam.matchDescriptors(des[imageA], des[imageB])
+    # H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[imageA], kp[imageB])
+    # dst = cv.warpPerspective(frames[0],H,(640, 480)) # warp the first image
+    # plt.subplot(212)
+
+    # dst = cam.homographyStitch(frames[imageA],frames[imageB],H)
+    # dst = np.flip(dst,1)
+    # plt.figure()
+    # plt.imshow(dst)
+    # plt.show()
+
+    # cv.imshow("thing",dst)
+    # time.sleep(3)
 
     # cam.overlapStitch(frames)
 
