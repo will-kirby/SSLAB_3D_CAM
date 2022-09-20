@@ -7,6 +7,7 @@ class CameraSystem:
     cameraIndexList = None
     homographyMatrix = None
     overlapAmount = 56
+    homographyMatrix = []
     
 
     def __init__(self, cameraIndexList=[], compressCameraFeed=True):
@@ -105,7 +106,6 @@ class CameraSystem:
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in goodMatches ]).reshape(-1,1,2)
             M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)
             matchesMask = mask.ravel().tolist()
-            print(M, matchesMask)
         else:
             print( "Not enough matches are found - {}/{}".format(len(goodMatches), MIN_MATCH_COUNT) )
             matchesMask = None
@@ -115,9 +115,6 @@ class CameraSystem:
 
     def homographyStitch(self, img1, img2, H):
         dst = cv.warpPerspective(img1,H,((img1.shape[1] + img2.shape[1]), img2.shape[0])) # warp the first image
-        plt.imshow(dst)
-        plt.show()
-
         dst[0:img2.shape[0], 0:img2.shape[1]] = img2 #plop the second down
         return dst
 
@@ -136,7 +133,33 @@ class CameraSystem:
 
         return overlappedImage
 
-    def fishEyeTransform(frame):
+    def saveHomographyToFile(self, homographyMat : [], fileName : str = "savedHomographyMatrix.npy"):
+        """
+        Pass in homography matrix, gets saved to file
+        - homographyMat is a list of homography matrices
+        - this list gets converted to numpy array then saved
+        """
+        np.save(fileName, np.array(homographyMat))
+
+    def openHomographyFile(self, fileName : str = "savedHomographyMatrix.npy"):
+        """
+        Open a homography matrix file, returns a list of each homography matrix
+        """
+        return list(np.load(fileName))
+
+    def displayFrameMatplotlib(self, frame):
+        plt.imshow(frame)
+        plt.show()
+
+    def calibrateMatrix(self):
+        frames = self.captureCameraImages()
+        kp, des = self._findKPandDesMultiple(frames)
+        goodMatches = self.matchDescriptors(des[0], des[1])
+        H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[0], kp[1])
+        
+        return H, matchesMask
+
+    def fishEyeTransform(self, frame):
         # TBD. I think this is really important. If you apply fisheye to each image,
         # may just be able to shift the images together
 
