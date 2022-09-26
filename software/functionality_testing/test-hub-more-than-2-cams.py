@@ -9,9 +9,9 @@ import numpy as np
 
 cameras = []
 num_cameras = 3# on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
-startIndex = 1 # if on laptop, avoid the webcam (0 for jetson)
+startIndex = 0 # if on laptop, avoid the webcam (0 for jetson)
 compress = 1 # change whether to use the compressed camera feed
-reverseCams = 1 # reverse the camera order
+reverseCams = 0 # reverse the camera order
 newheight = 480
 newWidth = 640
 shiftAmount = 56
@@ -77,8 +77,8 @@ while True:
     cv.imshow('pushed images', pushedImages)
 
 
-    #if cv.waitKey(2) == ord('q'):
-        #break
+    if cv.waitKey(2) == ord('q'):
+        break
 
     if cv.waitKey(1) == ord('c'):
          for i, frame in enumerate(frames):

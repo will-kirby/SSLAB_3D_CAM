@@ -86,16 +86,24 @@ while True:
         continue
 
     # Display the resulting frame
-    cv.imshow('raw camera', np.concatenate(frames, axis=1))
+    #cv.imshow('raw camera', np.concatenate(frames, axis=1))
     
     # Our operations on the frame come here
     timeStart = time.perf_counter()
-    (status, stitched) = stitcher.stitch(frames)
+
+#since updating to opencv4.6.0, sometimes gives cv2.error: OpenCV(4.6.0) /io/opencv/modules/calib3d/src/compat_ptsetreg.cpp:125: error: (-215:Assertion failed) !err.empty() in function 'update' which crashes the program 
+
+#try, except prevents it from crashing
+    try:
+       (status, stitched) = stitcher.stitch(frames)
+    except:
+       print("Error stitching") 
+       status = 1
     
     
     if status==0:
         GPIO.output(led_pin, GPIO.LOW)
-        cv.imshow('stitched', stitched)
+        #cv.imshow('stitched', stitched)
         stitchTimes.append(time.perf_counter() - timeStart)
         stitched_resize = cv.resize(stitched, (640,480))
         video.write(stitched_resize)
@@ -141,8 +149,8 @@ GPIO.output(led_pin, GPIO.LOW)
 # plt.show()
 
 #Begin File Transfer
-args = sys.argv #"./common/copy.sh", 'Alan', 'test_stitched_vid.avi']
-args[0] = "./common/copy.sh" # path to shell script
+args = ["/home/lab/SSLAB_3D_CAM/software/common/copy.sh", 'Alan', 'test_stitched_vid.avi'] #sys.argv
+#args[0] = "./common/copy.sh" # path to shell script
 #if len(sys.argv) < 1:
 #args[1] = 'Alan'
 #args[2] = 'test_stitched_vid.avi'
