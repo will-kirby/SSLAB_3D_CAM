@@ -6,6 +6,7 @@ import csv
 from CameraSystemClass import CameraSystem
 import cv2 as cv
 import imutils
+import numpy as np
 
 import random
 
@@ -67,7 +68,7 @@ def run_test(duration, log_name, algo, num_cameras): # Small change since all pa
       if (algo == 'Homography'):
         frames = cam.captureCameraImages()
         start = time.perf_counter()
-        stitched = cam.homographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
+        stitched = cam.tripleHomographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
         end = time.perf_counter()
         writer.writerow([start, end, 0])
         #if (duration % 10 == 0):
@@ -99,7 +100,7 @@ if __name__ == '__main__' :
   parser = argparse.ArgumentParser(description='Stitching functionality test with variable camera range and timing', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('-c', '--cameras', type=int, default=2, 
     help='Specify the amount of cameras')
-  parser.add_argument('-d', '--duration', type=int, default=10,
+  parser.add_argument('-d', '--duration', type=int, default=30,
     help='Specify the duration in seconds to run the test')
   parser.add_argument('-s', '--stitcher', type=int, default=0, # Stitcher argument. We're using another stitcher for comparison right? I don't know what to put for the 2nd option so I left it as 'other'
     help='Specify stitcher mode. 0 for OpenCV, 1 for Homography, 2 for Other') # Shifting for other?
@@ -116,8 +117,8 @@ if __name__ == '__main__' :
     name = time.strftime("%Y-%m-%d_%H.%M.%S")
   else:
     name = args.name
-  log_name = os.path.join(dirname, f'logs/{name}/{name}.csv')
-  image_dir = os.path.join(dirname, f'logs/{name}')
+  log_name = os.path.join(dirname, f'logs/{name}.csv')
+  image_dir = os.path.join(dirname, f'logs')
 
   # Will have to a similar if statement when selecting stitcher once stitching is integrated.
   if (args.stitcher == 0):
@@ -134,15 +135,18 @@ if __name__ == '__main__' :
 
     fieldnames = ['Start Time', 'End Time', 'Status']
     writer.writerow(fieldnames)
+    cam = None
+    cameras = []
+    frames = []
     # ///////// OpenCV
     if (algo == 'OpenCV'):
-      cameras = []
+#      cameras = []
       for i in range(num_cameras):
-        camera = cv.VideoCapture("/dev/camera"+str(i))
-        camera.set(cv.CAP_PROP_FPS, 15)
-        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
-        camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        camera = cv.VideoCapture("/dev/video"+str(i))
+        #camera.set(cv.CAP_PROP_FPS, 15)
+        #camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+        #camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        #camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         cameras.append(camera)
       for i, camera in enumerate(cameras):
         if not camera.isOpened():
@@ -155,34 +159,70 @@ if __name__ == '__main__' :
       #camArray = list(range(0,num_cameras))
       #cam = CameraSystem(camArray,compressCameraFeed=False)
       cam = CameraSystem([0,1,2],compressCameraFeed=False)
-      start = time.perf_counter()
-      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-      end = time.perf_counter()
-      writer.writerow([start, end, 0, 1])
-      cam.saveHomographyToFile([Hl, Hr])
-      Hl, Hr = cam.openHomographyFile()
+      #start = time.perf_counter()
+      #Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+      #end = time.perf_counter()
+      #writer.writerow([start, end, 0, 1])
+      #cam.saveHomographyToFile([Hl, Hr])
+      Hl, Hr = cam.openHomographyFile('savedHomographyMatrix_perm.npy')
+      print(Hl.shape, Hr.shape)
 
     print('Opened Cameras')
+    print('Taking 1 image')
+
+    s = 1
+    while s != 0:
+        frames = []
+        for i, camera in enumerate(cameras):
+            status, frame = camera.read()
+            frames.append(frame)
+        try:
+            s, stitch = stitcher.stitch(frames)
+            if s == 0:
+                print('successfully took a stitched image')
+                for i, frame in enumerate(frames):
+                    cv.imwrite(f"{name}_frame{i}.jpg",frame)
+                cv.imwrite(f"{name}_stitched.jpg",stitch)
+            else:
+                print('unsuccessful')
+        except:
+            print()
     print(f"Running for {duration} seconds")
     print('Logging to', log_name)
 
-    frames = []
-    for camera in cameras:
-      ret, frame = camera.read()
-    (status, stitched) = stitcher.stitch(frames)
-    cv.imwrite(f'{image_dir}/capture{i}.png', frame)
-    cv.imwrite(f'{image_dir}/stitched.png', stitched)
-    print(f'capture{i}.png saved')
-    exit()
-
     end_time = int(time.time())+duration
+
+
+    while(int(time.time())<=end_time):
+        frames = []
+        for i, camera in enumerate(cameras):
+            status, frame = camera.read()
+            frames.append(frame)
+            cv.imshow(f"Image{i}",frame)
+
+        try:
+            start = time.perf_counter()
+            (status, stitched) = stitcher.stitch(frames)
+            end = time.perf_counter()
+            writer.writerow([start, end, status])
+
+            if status == 0:
+                print('successful')
+                cv.imshow('stitch', stitched)
+            else:
+                print('unsuccessful')
+        except:
+            print()
+    print('Program stop')
+    exit()
 
     # ///// Start loop
     while(int(time.time())<=end_time):
       if (algo == 'Homography'):
         frames = cam.captureCameraImages()
+        print(len(frames))
         start = time.perf_counter()
-        stitched = cam.homographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
+        stitched = cam.tripleHomographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
         end = time.perf_counter()
         writer.writerow([start, end, 0])
         #if (duration % 10 == 0):
@@ -205,6 +245,9 @@ if __name__ == '__main__' :
         writer.writerow([start, end, status])
         print('log')
 
+
+
   if algo == 'OpenCV':
-      camera.release()
+      for camera in cameras:
+          camera.release()
   print('Program stop')
