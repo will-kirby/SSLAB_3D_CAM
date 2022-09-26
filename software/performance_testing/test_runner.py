@@ -74,8 +74,6 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
         #  end = time.perf_counter()
         #  writer.writerow([start, end, 0, 1])
 
-
-
       if (algo == 'OpenCV'):
         frames = []
         for camera in cameras:
@@ -87,11 +85,9 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
         (status, stitched) = stitcher.stitch(frames)
         end = time.perf_counter()
         writer.writerow([start, end, status])
-      
-      for camera in cameras:
-        camera.release()
 
-
+  for camera in cameras:
+    camera.release()
   print('Program stop')
   return
 
