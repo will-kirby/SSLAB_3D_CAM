@@ -8,7 +8,7 @@ import cv2 as cv
 import numpy as np
 
 cameras = []
-num_cameras = 6 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
+num_cameras = 2 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
 startIndex = 0 # if on laptop, avoid the webcam (0 for jetson)
 compress = 1 # change whether to use the compressed camera feed
 reverseCams = 1 # reverse the camera order
@@ -20,7 +20,7 @@ shiftAmount = 56
 print("Staring program...")
 print(f"Number_of_cameras={num_cameras}, Starting_Index={startIndex}, Compress_camera_feed={compress}, Reverse_Cameras={reverseCams}")
 for i in range(num_cameras):
-    camera = cv.VideoCapture(i+startIndex)
+    camera = cv.VideoCapture(f'dev/camera{i}')
     if compress:
         camera.set(cv.CAP_PROP_FPS, 15)
         camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
