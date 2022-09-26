@@ -14,15 +14,13 @@ sys.path.insert(1, '../common/')
 # import open_camera
 
 # put number of cameras, stitching algo
-def run_test(duration, log_name, num_cameras, algo): # Small change since all parameters can be positional
+def run_test(duration, log_name, algo, num_cameras): # Small change since all parameters can be positional
   """
   Runs test for a user specified amount of time
   Input:
   duration: int: duration to run the test in seconds
   log_name: str: filepath to csv for logging
   """
-  print(f"Running for {duration} seconds")
-  print('Logging to', log_name)
 
   with open(log_name, "w", newline='') as csv_file:
     writer = csv.writer(csv_file, delimiter=',')
@@ -57,7 +55,9 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
       writer.writerow([start, end, 0, 1])
       cam.saveHomographyToFile([Hl, Hr])
       Hl, Hr = cam.openHomographyFile()
-
+    print('Opened Cameras')
+    print(f"Running for {duration} seconds")
+    print('Logging to', log_name)
     end_time = int(time.time())+duration
 
     # ///// Start loop
@@ -85,16 +85,18 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
         (status, stitched) = stitcher.stitch(frames)
         end = time.perf_counter()
         writer.writerow([start, end, status])
+        print('log')
 
-  for camera in cameras:
-    camera.release()
+  if algo == 'OpenCV':
+    for camera in cameras:
+      camera.release()
   print('Program stop')
   return
 
 if __name__ == '__main__' :
   # Adding the formatter class will inform users of default values when using -help
   parser = argparse.ArgumentParser(description='Stitching functionality test with variable camera range and timing', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  parser.add_argument('-c', '--cameras', type=int, default=4, 
+  parser.add_argument('-c', '--cameras', type=int, default=2, 
     help='Specify the amount of cameras')
   parser.add_argument('-d', '--duration', type=int, default=10,
     help='Specify the duration in seconds to run the test')
