@@ -48,8 +48,13 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
 
     # ///////// Homography (Based on sampleStitch.py, commit on 9/25)
     elif (algo == 'Homography'):
-      cam = CameraSystem([0:3],compressCameraFeed=False)
+      #camArray = list(range(0,num_cameras))
+      #cam = CameraSystem(camArray,compressCameraFeed=False)
+      cam = CameraSystem([0,1,2],compressCameraFeed=False)
+      start = time.perf_counter()
       Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+      end = time.perf_counter()
+      writer.writerow([start, end, 0, 1])
       cam.saveHomographyToFile([Hl, Hr])
       Hl, Hr = cam.openHomographyFile()
 
@@ -62,7 +67,13 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
         start = time.perf_counter()
         stitched = cam.homographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
         end = time.perf_counter()
-        writer.writerow([start, end, status])
+        writer.writerow([start, end, 0])
+        #if (duration % 10 == 0):
+        #  start = time.perf_counter()
+        #  Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+        #  end = time.perf_counter()
+        #  writer.writerow([start, end, 0, 1])
+
 
 
       if (algo == 'OpenCV'):
