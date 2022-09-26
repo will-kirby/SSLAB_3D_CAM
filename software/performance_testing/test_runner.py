@@ -3,8 +3,8 @@ import argparse
 import os
 import sys
 import csv
-
-import cv2
+from CameraSystemClass import CameraSystem
+import cv2 as cv
 import imutils
 
 import random
@@ -30,29 +30,56 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
 
     fieldnames = ['Start Time', 'End Time', 'Status']
     writer.writerow(fieldnames)
+    # ///////// OpenCV
+    if (algo == 'OpenCV'):
+      cameras = []
+      for i in range(num_cameras):
+        camera = cv.VideoCapture("/dev/camera"+str(i))
+        camera.set(cv.CAP_PROP_FPS, 15)
+        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        cameras.append(camera)
+      for i, camera in enumerate(cameras):
+        if not camera.isOpened():
+          print(f"Cannot open camera {i}")
+          exit()
+      stitcher = cv.createStitcher() if imutils.is_cv3() else cv.Stitcher_create()
 
-    # cameras = [open_camera(i) for i in range(num_cameras)]
-    # stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
+    # ///////// Homography (Based on sampleStitch.py, commit on 9/25)
+    elif (algo == 'Homography'):
+      cam = CameraSystem([0:3],compressCameraFeed=False)
+      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+      cam.saveHomographyToFile([Hl, Hr])
+      Hl, Hr = cam.openHomographyFile()
 
     end_time = int(time.time())+duration
+
+    # ///// Start loop
     while(int(time.time())<=end_time):
+      if (algo == 'Homography'):
+        frames = cam.captureCameraImages()
+        start = time.perf_counter()
+        stitched = cam.homographyStitch(frames[0], frames[1], frames[2],  Hl, Hr)
+        end = time.perf_counter()
+        writer.writerow([start, end, status])
 
-      # frames = []
-      # for camera in cameras:
-      #   ret, frame = camera.read()
-      #   if not ret:
-      #     print(f"Can't receive frame (stream end?). Exiting ...")
-      #     break
 
-      #   frames.append(frame)
+      if (algo == 'OpenCV'):
+        frames = []
+        for camera in cameras:
+          ret, frame = camera.read()
+          #if not ret:
+          #  print(f"Can't receive frame (stream end?). Exiting ...")
+          #  break
+        start = time.perf_counter()
+        (status, stitched) = stitcher.stitch(frames)
+        end = time.perf_counter()
+        writer.writerow([start, end, status])
+      
+      for camera in cameras:
+        camera.release()
 
-      # (status, stitched) = stitcher.stitch(frames)
-      start = time.perf_counter()
-      time.sleep(.1)
-      end = time.perf_counter()
-
-      status = random.randint(0,1)
-      writer.writerow([start, end, status])
 
   print('Program stop')
   return
@@ -65,7 +92,7 @@ if __name__ == '__main__' :
   parser.add_argument('-d', '--duration', type=int, default=10,
     help='Specify the duration in seconds to run the test')
   parser.add_argument('-s', '--stitcher', type=int, default=0, # Stitcher argument. We're using another stitcher for comparison right? I don't know what to put for the 2nd option so I left it as 'other'
-    help='Specify stitcher mode. 0 for OpenCV, 1 for *OTHER*')
+    help='Specify stitcher mode. 0 for OpenCV, 1 for Homography, 2 for Other') # Shifting for other?
   parser.add_argument('-i', '--image', action='store_true', default=False,
     help='Flag to take one image')
   parser.add_argument('-n', '--name', type=str, default='current time', 
@@ -83,9 +110,11 @@ if __name__ == '__main__' :
   image_dir = os.path.join(dirname, 'images')
 
   # Will have to a similar if statement when selecting stitcher once stitching is integrated.
-  if (args.stitcher):
-    algo = 'OpenCV Stitcher'
+  if (args.stitcher == 0):
+    algo = 'OpenCV'
+  elif (args.stitcher == 1):
+    algo = 'Homography'
   else:
-    algo = 'OTHER'
+    algo = 'Other'
 
   run_test(duration, log_name, algo, args.cameras)
