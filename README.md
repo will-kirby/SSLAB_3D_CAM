@@ -65,6 +65,16 @@ Displays GUI for viewing stitched images (will be updated to support videos)
 
 ---
 
+## Beta Build
+
+#### Demo video
+
+[![Beta Build Stitcher Demo](https://img.youtube.com/vi/eHiNH1yC95o/hqdefault.jpg)](https://youtu.be/eHiNH1yC95o)
+
+#### UI Diagram
+
+![UI_Diagram](Milestones/UI-Diagram.jpg)
+
 ## Specifications (Alpha Build)
 
 ### Usability
