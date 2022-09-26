@@ -1,5 +1,4 @@
-*.png
 !/figures/*.png
-!/images/*.png
+!/images/**.png
 .py3venv/
 /temp
