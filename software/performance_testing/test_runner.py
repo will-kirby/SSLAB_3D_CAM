@@ -56,9 +56,10 @@ if __name__ == '__main__' :
     writer.writerow(fieldnames)
     
     cam = CameraSystem([0,1,2])
-    #Hl, Hr = cam.openHomographyFile('savedHomographyMatrix_perm.npy')
-    frames = cam.captureCameraImages()
-    Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+    frames = cam.captureCameraImages()    
+    Hl, Hr = cam.openHomographyFile('savedHomographyMatrix_test.npy')
+    
+    #Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
     if Hl is None or Hr is None:
         print('could not find homography')
         exit()
