@@ -57,7 +57,7 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
       writer.writerow([start, end, 0, 1])
       cam.saveHomographyToFile([Hl, Hr])
       Hl, Hr = cam.openHomographyFile()
-
+    print(f"All cameras open")
     end_time = int(time.time())+duration
 
     # ///// Start loop
@@ -78,16 +78,17 @@ def run_test(duration, log_name, num_cameras, algo): # Small change since all pa
         frames = []
         for camera in cameras:
           ret, frame = camera.read()
-          #if not ret:
-          #  print(f"Can't receive frame (stream end?). Exiting ...")
-          #  break
+          if not ret:
+            print(f"Can't receive frame (stream end?). Exiting ...")
+            break
         start = time.perf_counter()
         (status, stitched) = stitcher.stitch(frames)
         end = time.perf_counter()
         writer.writerow([start, end, status])
 
-  for camera in cameras:
-    camera.release()
+  if (algo == 'OpenCV'):
+    for camera in cameras:
+      camera.release()
   print('Program stop')
   return
 
