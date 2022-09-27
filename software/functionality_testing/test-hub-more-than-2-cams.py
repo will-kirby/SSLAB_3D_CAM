@@ -8,10 +8,16 @@ import cv2 as cv
 import numpy as np
 
 cameras = []
+<<<<<<< HEAD:software/functionality_testing/test-hub-more-than-2-cams.py
 num_cameras = 2 # on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
+=======
+
+num_cameras = 6# on my laptop, this worked, used webcam, 2 hub, and 1 sep plugged in
+>>>>>>> main:software/code_testing/test-hub-more-than-2-cams.py
 startIndex = 0 # if on laptop, avoid the webcam (0 for jetson)
-compress = 1 # change whether to use the compressed camera feed
+compress = True # change whether to use the compressed camera feed
 reverseCams = 1 # reverse the camera order
+
 newheight = 480
 newWidth = 640
 shiftAmount = 56
@@ -28,7 +34,7 @@ for i in range(num_cameras):
         camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     else:
         camera.set(3, 200)# width
-
+    
     cameras.append(camera)
 #cameras = [cv.VideoCapture(i) for i in range(num_cameras)]
 
@@ -47,7 +53,7 @@ print(f"{num_cameras} successfully opened")
 
 
 
-# print("Press 'c' to capture image and quit")
+print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
 print("Press 's' to push images together")
 
@@ -57,6 +63,8 @@ while True:
     # Capture frame-by-frame
     for i, camera in enumerate(cameras):
         ret, frame = camera.read()
+
+
         frame = cv.resize(frame, dsize=(newheight, newWidth), interpolation=cv.INTER_LINEAR) # make it bigger
         frames.append(frame)
         # if frame is read correctly ret is True
@@ -77,20 +85,22 @@ while True:
     cv.imshow('pushed images', pushedImages)
 
 
-    
-
-    # if cv.waitKey(1) == ord('c'):
-    #     for i, frame in enumerate(frames):
-    #         cv.imwrite(f'capture{i}.png', frame)
-    #         print(f'capture{i}.png saved')
-    #     break
-
-    if cv.waitKey(1) == ord('s'):
-        shiftAmount += 2
-        print(f"Incrementing shift amount, current amount: {shiftAmount}")
-
     if cv.waitKey(2) == ord('q'):
         break
+
+    if cv.waitKey(1) == ord('c'):
+
+        print(len(frames))
+        for i, frame in enumerate(frames):
+           cv.imwrite(f'capture{i}.png', frame)
+           print(f'capture{i}.png saved')
+        break
+
+   # if cv.waitKey(1) == ord('s'):
+    #    shiftAmount += 2
+     #   print(f"Incrementing shift amount, current amount: {shiftAmount}")
+
+   
 
 # When everything done, release the capture
 for camera in cameras:

@@ -18,22 +18,22 @@ help='Flag to take one image')
 
 
 # GPIO library
-import Jetson.GPIO as GPIO
+#import Jetson.GPIO as GPIO
  
 # Handles time
-import time 
+#import time 
  
 # Pin Definition
-led_pin = 12
+#led_pin = 12
  
 # Set up the GPIO channel
-GPIO.setmode(GPIO.BOARD) 
-GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.HIGH) 
+#GPIO.setmode(GPIO.BOARD) 
+#GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.HIGH) 
  
-print("Press CTRL+C when you want the LED to stop blinking") 
+#print("Press CTRL+C when you want the LED to stop blinking") 
 
-GPIO.output(led_pin, GPIO.HIGH) 
-print("LED is ON")
+#GPIO.output(led_pin, GPIO.HIGH) 
+#print("LED is ON")
 
 num_cameras = 2
 cameras = []# None
@@ -41,13 +41,13 @@ cameras = []# None
 jetson = False
 
 if jetson:
-    cameras = [cv.VideoCapture(f'/dev/camera{i}') for i in range(num_cameras)]
+    cameras = [cv.VideoCapture(f'dev/video{i}') for i in range(num_cameras)]
 else:
     for i in range(num_cameras):
-        camera = cv.VideoCapture("/dev/camera"+str(i))
-        camera.set(cv.CAP_PROP_FPS, 15)
-        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+        camera = cv.VideoCapture(i)
+        #camera.set(cv.CAP_PROP_FPS, 15)
+#        camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
+#        camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
         camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         cameras.append(camera)
 
@@ -86,31 +86,23 @@ while True:
         continue
 
     # Display the resulting frame
-    #cv.imshow('raw camera', np.concatenate(frames, axis=1))
+    cv.imshow('raw camera', np.concatenate(frames, axis=1))
     
     # Our operations on the frame come here
     timeStart = time.perf_counter()
-
-#since updating to opencv4.6.0, sometimes gives cv2.error: OpenCV(4.6.0) /io/opencv/modules/calib3d/src/compat_ptsetreg.cpp:125: error: (-215:Assertion failed) !err.empty() in function 'update' which crashes the program 
-
-#try, except prevents it from crashing
-    try:
-       (status, stitched) = stitcher.stitch(frames)
-    except:
-       print("Error stitching") 
-       status = 1
+    (status, stitched) = stitcher.stitch(frames)
     
     
     if status==0:
-        GPIO.output(led_pin, GPIO.LOW)
-        #cv.imshow('stitched', stitched)
+        #GPIO.output(led_pin, GPIO.LOW)
+        cv.imshow('stitched', stitched)
         stitchTimes.append(time.perf_counter() - timeStart)
         stitched_resize = cv.resize(stitched, (640,480))
         video.write(stitched_resize)
         print("stitched!")
 
-    elif status==1:
-         GPIO.output(led_pin, GPIO.HIGH) 
+    #elif status==1:
+         #GPIO.output(led_pin, GPIO.HIGH) 
         
 
     stitcherStatuses.append(status)
@@ -131,7 +123,7 @@ for camera in cameras:
 
 video.release();
 cv.destroyAllWindows()
-GPIO.output(led_pin, GPIO.LOW)
+#GPIO.output(led_pin, GPIO.LOW)
 
 # Deprecated for log parsing
 # # performance reporting
@@ -149,7 +141,7 @@ GPIO.output(led_pin, GPIO.LOW)
 # plt.show()
 
 #Begin File Transfer
-args = ["/home/lab/SSLAB_3D_CAM/software/common/copy.sh", 'Alan', 'test_stitched_vid.avi'] #sys.argv
+#args = sys.argv #"./common/copy.sh", 'Alan', 'test_stitched_vid.avi']
 #args[0] = "./common/copy.sh" # path to shell script
 #if len(sys.argv) < 1:
 #args[1] = 'Alan'
@@ -157,5 +149,5 @@ args = ["/home/lab/SSLAB_3D_CAM/software/common/copy.sh", 'Alan', 'test_stitched
 
 
 
-print("Transfering file " + args[2])
-subprocess.check_call(args)
+#print("Transfering file " + args[2])
+#subprocess.check_call(args)
