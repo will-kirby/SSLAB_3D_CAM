@@ -34,7 +34,7 @@ def get_frame():
         yield (b'--frame\r\n'
             b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
 
-@app.before_first_request
+#@app.before_first_request
 def initialize():
     global cam
     print("Constructing camera system")
@@ -57,13 +57,6 @@ def initialize():
     else:
        print("Not enough matches detected to compute homography")
        
-
-        
-          
-
-    
-    
-
 @app.route('/vid',methods=['GET'])
 def vid():
      global cam
@@ -99,4 +92,5 @@ def toggleVidInput():
     return {'status' : 200}
 
 if __name__ == '__main__':
-    app.run(host='192.168.55.1',port=5000, debug=True, threaded=True)
+    initialize()
+    app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
