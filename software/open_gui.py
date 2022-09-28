@@ -34,6 +34,7 @@ class App(QMainWindow):
         self.player.setVideoOutput(self.video)
 
         self.child = None
+        self.enable = False
         
 	#maybe take some user input for the following settings?
         self.username = "Alan" #for copying: username on remote computer
@@ -73,7 +74,8 @@ class App(QMainWindow):
             self.thread1.start()
             
     def recalibrate(self):
-        self.stdin.write('r')
+        if(self.enable):
+           self.stdin.write('r')
     
     def read_output(self):
          while True:
@@ -83,12 +85,13 @@ class App(QMainWindow):
                 print(output)
                 if output == "Ready!":
                     self.child = subprocess.Popen(['python','functionality_testing\client.py'])
-                
+                if output == "Transmitting!":
+                    self.enable = True
             if (self.stdout.channel.exit_status_ready()):
                 break
             
     def button_clicked_off(self):
-        if self.button1.text() == "Stop Recording":
+        if self.button1.text() == "Stop Recording" and self.enable:
             #self.child.communicate(b'q') #sends q to IO_video_loop stdin
             #print("Processing... will show image when done.")
             
@@ -102,6 +105,7 @@ class App(QMainWindow):
             
             self.client.close()
             self.thread1.join()
+            self.enable = False
             # Outputting Image
             #self.label = QLabel(self)
             #self.pixmap = QPixmap("./test-capture0.png")

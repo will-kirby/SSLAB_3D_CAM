@@ -17,6 +17,7 @@ class CameraSystem:
 
         for i in cameraIndexList:
             camera = cv.VideoCapture(f"/dev/camera{i}")
+            #camera = cv.VideoCapture(i)
             if not camera.isOpened():
                 print(f"Cannot open camera {i}")
                 raise Exception(f"Unable to open camera {i}")

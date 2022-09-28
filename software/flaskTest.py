@@ -4,38 +4,27 @@ import sys
 import numpy as np
 from CameraSystemClass import CameraSystem
 
-numCams = 1
-
+numCams = 3
+global cam
 print("Starting flask")
 app = Flask(__name__)
 
-print("Constructing camera system")
-if numCams == 1:
-    cam = CameraSystem([0],compressCameraFeed=False) # laptop cam
-elif numCams == 2:
-    cam = CameraSystem([1,2],compressCameraFeed=False) # two cams may need more work, i'm using Hl right now
-elif numCams == 3:
-    cam = CameraSystem([1,2,3])
-
-print("Calculating homography for 0, 1, 2")
-frames = cam.readFramesFromFiles(["capture0.png", "capture1.png","capture2.png"],"functionality_testing/")
-Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-
-# Save homo to file
-print("Saving homo to file")
-cam.saveHomographyToFile([Hl, Hr])
-
 def get_frame():
-    print("Opeing cam matrix")
-    Hl, Hr = cam.openHomographyFile()
-
+    global cam
+    print("Opening cam matrix")
+    try:
+       Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")
+    
+    except:
+       Hl, Hr = cam.openHomographyFile("savedHomographyMatrix.npy") #use some back up homography
+       
     while True:
         if numCams == 1:
             frames = cam.captureCameraImages()
             im = frames[0]
         elif numCams == 2:
             frames = cam.captureCameraImages()
-            im = cam.cam.homographyStitch(frames[0], frames[1], Hl)
+            im = cam.homographyStitch(frames[0], frames[1], Hl)
         elif numCams == 3:
             frames = cam.captureCameraImages()
             im = cam.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
@@ -45,25 +34,69 @@ def get_frame():
         yield (b'--frame\r\n'
             b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
 
+@app.before_first_request
+def initialize():
+    global cam
+    print("Constructing camera system")
+    if numCams == 1:
+       cam = CameraSystem([0],compressCameraFeed=False) # laptop cam
+    elif numCams == 2:
+       cam = CameraSystem([0,1],compressCameraFeed=False) # two cams may need more work, i'm using Hl right now
+    elif numCams == 3:
+       cam = CameraSystem([0,1,2])
+
+    print("Calculating homography for 0, 1, 2")
+    frames = cam.captureCameraImages()
+    #frames = cam.readFramesFromFiles(["capture0.png", "capture1.png","capture2.png"],"../images/lab_5/")
+    Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+    if (Hl is not None and Hr is not None):
+       # Save homo to file
+       print("Saving homo to file")
+       cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
+   
+    else:
+       print("Not enough matches detected to compute homography")
+       
+
+        
+          
+
+    
+    
+
 @app.route('/vid',methods=['GET'])
 def vid():
+     global cam
      return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/vid', methods=['POST'])
 def toggleVidInput():
+    global cam
     print("Recalibrating input")
     frames = cam.captureCameraImages()
     if numCams == 3:
         Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-        print("Saving homo to file")
-        cam.saveHomographyToFile([Hl, Hr])
+        if (Hl is not None and Hr is not None):
+           # Save homo to file
+           print("Saving homo to file")
+           cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
+   
+        else:
+           print("Not enough matches detected to compute homography")
+       
     elif numCams == 2:
         H, matchesMask = cam.calibrateMatrix()
-        print("Saving homo to file")
-        cam.saveHomographyToFile([H])
+        if (H is not None):
+           # Save homo to file
+           print("Saving homo to file")
+           cam.saveHomographyToFile([H],"testFlaskHomography.npy")
+   
+        else:
+           print("Not enough matches detected to compute homography")
+
     elif numCams == 1:
-        print("Num cams is 1, nothing to recalibrate")
+           print("Num cams is 1, nothing to recalibrate")
     return {'status' : 200}
 
 if __name__ == '__main__':
-    app.run(host='localhost',port=5000, debug=True, threaded=True)
+    app.run(host='192.168.55.1',port=5000, debug=True, threaded=True)

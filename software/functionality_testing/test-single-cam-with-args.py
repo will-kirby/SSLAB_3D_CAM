@@ -10,6 +10,7 @@ args = parser.parse_args()
 # print(sys.argv[1],sys.argv[2])
 camNum = args.camera
 camera = cv.VideoCapture(f'/dev/camera{camNum}')
+#camera = cv.VideoCapture(camNum)
 if not camera.isOpened():
     print(f"Cannot open camera {camNum}")
     exit()
