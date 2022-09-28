@@ -37,6 +37,7 @@ server_socket.bind(socket_address)
 server_socket.listen(5) #IDK what this does exactly, the "5"
 print("LISTENING AT:",socket_address)
 print("Ready!")
+enable = True
 
 while True:
     connection = False
@@ -100,6 +101,9 @@ while True:
                      Hl = temp_Hl
                      Hr = temp_Hr
                      print("Done recalibrating")
+         if(enable):
+              print("Transmitting!")
+              enable = False
 
 
 
