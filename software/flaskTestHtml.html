@@ -5,7 +5,7 @@
 <script>
     function recalibrateStream(){
         console.log("Recal called")
-        fetch("http://localhost:5000/vid", {
+        fetch("http://192.168.55.1:5000/vid", {
             method: "post",
             headers: {
                 'Accept': 'application/json',
@@ -33,7 +33,7 @@
 <button name="recalibrate" onclick="recalibrateStream()">Recalibrate</button>
 
 <div id="imageHolder">
-    <img src="http://localhost:5000/vid" />
+    <img src="http://192.168.55.1:5000/vid" />
 </div>
 
 <!-- <img src="http://localhost:5000/vid" /> -->

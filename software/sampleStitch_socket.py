@@ -10,9 +10,18 @@ print("Constructing camera system")
 cam = CameraSystem([0,1,2])
 
 frames = cam.captureCameraImages()
-#print("Calculating homography for 0 and 1")
+print("Calculating homography for 0 and 1")
 #H, matchesMask = cam.calibrateMatrix()
-#Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+
+if (Hl is not None and Hr is not None):
+    # Save homo to file
+    print("Saving homo to file")
+    cam.saveHomographyToFile([Hl, Hr],"savedHomographyMatrix.npy")
+   
+else:
+    print("Not enough matches detected to compute homography")
+    Hl, Hr = cam.openHomographyFile("/home/lab/SSLAB_3D_CAM/software/savedHomographyMatrix_perm.npy") #load stored backup 
 
 # Save homo
 #cam.saveHomographyToFile([H])
@@ -20,7 +29,7 @@ frames = cam.captureCameraImages()
 
 # Open saved matrix
 #H = cam.openHomographyFile()
-Hl, Hr = cam.openHomographyFile("/home/lab/SSLAB_3D_CAM/software/savedHomographyMatrix.npy")
+
 
 # Socket Create
 server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
