@@ -81,39 +81,36 @@ Displays GUI for viewing stitched images (will be updated to support videos)
 
 #### Interface
 
-The Jetson connects to a standard monitor, mouse, and keyboard. The stitching program can then be started by running a python file in the terminal. An optional GUI can be displayed if desired (with the command line arg), that contains a start and stop button for recording a stitched image. Otherwise, a window will open with a real-time stitched image. Debug and status information is printed to the terminal, and LEDs light up based on program status (red LED if error, green for running).
+The UI to talk with the stitching program appears in a new window (communicating over micro USB with the Jetson). It currently contains  a start recording button to start the stitching program and display the live stitched video, a stop recording button to close the window and end the stitching program after the recording has started, and a recalibrate button that will recalibrate the homography matrices if the images are out of focus. The persistent state (saved homography matrix), is a local file on the Jetson. This can be accessed by connecting to the Jetson file system through SSH, or through the recalibrate API call.  As a visual indicator during runtime, there is an LED connected to the Jetson that lights up when the stitching program is running and working.
 
 #### Navigation
 
-The program is started through an Ubuntu terminal, through the Jetson’s operating system, when the Jetson is connected to a monitor and keyboard. A GUI script can be run. The GUI contains clickable start and stops capture buttons. Otherwise, a window with live capture displays, and can be exited by pressing ‘q’ on the window.
+The user interacts with the system through a GUI window that opens when the program is run on a client computer. The stitching program on the Jeston is started and stopped from the GUI. The GUI window contains clearly labeled buttons that state their purposes for starting or stopping the recording and recalibrating the homography matrix.
 
 #### Perception
 
-The GUI is extremely straightforward with a singular interactable button labeled “Start recording”, that can be clicked on by a mouse cursor. When the camera-operating script is run by a button click, there are LED lights to indicate several pieces of debugging information, like whether or not it is still running and errors encountered, and the button prompt changes to “Stop recording”. After that button has been pressed, the camera-operating script is stopped, and a notice is an output that states that the stitcher is processing the image and will display it when ready. Upon stitch completion, the user is presented with the stitched image
+The GUI is extremely straightforward with buttons clickable by mouse that are labeled according to function.  Other students in the lab were asked to test the camera system using the GUI and buttons. They reported that the GUI was simple and intuitive for what it accomplished. The buttons briefly highlight when clicked. The start button results in the stop and recalibrate buttons replacing the start button on the GUI and a window appearing with the stitched video. The stop button results in the video window closing and the GUI returning to its initial state with only the start button. The recalibrate button results in the stitched images changing focus. Additionally, an LED indicates whether the stitching program is working properly.
 
 #### Responsiveness
 
-Due to the nature of the project, the main execution loop captures video across multiple cameras. Using the GUI, the user will be able to view the stitched images and control the video capture. When inputs are sent using the GUI, they are immediately passed into the video capturing script, and once read by the secondary script should start or stop a capture. While the image stitching is in progress, the start & stop recording buttons are not accessible due to the script processing the recorded images or video into a deliverable stitch. After the completion of the image stitch, the buttons can be utilized again.
+The custom stitching algorithm has no noticeable delay in image processing, and no busy-wait loops. Camera recalibration occurs within 100 ms, and if it fails it falls back on the previous result. The Jetson has an LED that illuminates when the system is working. After the stitching program is started from the GUI, the stop and recalibrate buttons are inaccessible until the camera system is initialized.
 
 ### Build Quality
 
 #### Robustness
 
-The camera system is contained in a plastic 3d printed hexagonal shell, which protects the cameras and other electronic components. The program runs through multiple status checks, such as checking that all the cameras are successfully connected and running, which prevents unexpected crashes. Failure to stitch frames does not crash the program, but sets a status flag and causes an LED to light up.
+There are no noticeable glitches. Edge cases, such as the camera homography matrix failing to match key points results in the system falling back on a previously computed matrix. If no matrix has been previously computed, it falls back on a default saved matrix calculated from specific images. When the system boots up, it runs multiple status checks, which prevents improper configuration of the system and unexpected crashes.
 
-Using an externally powered USB hub, lowering frame rate, downscaling the resolution, and compressing video streams prevents sudden failure to read cameras due to power or bandwidth limitations (mostly relevant for reading from 3 to 6 cameras simultaneously)
+Using an externally powered USB hub, using a sufficiently low frame rate and resolution (15 FPS and 320x240), and compressing video streams (MJPG) prevents sudden failure to read cameras due to power or bandwidth limitations (mostly relevant for reading from 3 to 6 cameras simultaneously).
+
 
 #### Consistency
 
-As stated above, the program runs multiple status checks. This includes checking which cameras are connected correctly, and which cameras successfully captured an image, as well as the outcome of the image stitch. Ensuring that all of these checks are passed helps ensure that no unexpected behavior occurs.
-
-To further improve performance consistency, status checks and timings are logged when running the repeatable test. These logs are parsed to provide performance metrics. These will be used to test/iterate different stitching algorithms/optimizations for future builds.
+The system acts predictably.  Unpredictable results, such as serial communication failing will result in another attempt to communicate. If homography calculation fails, then the system falls back on a default precomputed matrix. Additionally, the cameras will always be read, stitched, and displayed in the same order.
 
 #### Aesthetic Rigor
 
-For software, the current GUI implementation’s aesthetic is very simplistic. It opens a small window with a “Start recording” prompt. Upon being clicked, that is relayed to the user through the button changing to a “Stop recording” prompt. When the user clicks this button again, a notice that stitching is in progress is output. Upon completion of the stitching, the resulting image is displayed.
-
-For physical artifacts, there is a hardshell plastic casing that protects the cameras & most of the internal electronics. At the moment, the USB hub utilized does not fit in the shell, though this does not affect the performance of the cameras or the security that the shell provides to those parts. This can be remedied by either purchasing a more compact hub in the future or printing a new plastic shell to accommodate these size concerns.
+The GUI is a simple window UI that contains three buttons: a button to start recording, a button to stop recording, and a button to recalibrate camera focus. The resulting stitched video is displayed on a separate window. Additionally, the camera system is housed in a custom 3D printed hexagonal case.
 
 ### Vertical Features
 
@@ -121,14 +118,14 @@ For physical artifacts, there is a hardshell plastic casing that protects the ca
 
 #### External Interface
 
-The program contains a GUI, also a window with a real-time display of the stitched image
+The client-side program opens two windows. One window contains buttons to control the Jetson (which runs the stitching program), while the other displays the stitched image. The user can modify the persistent state (camera homography matrix) by clicking on the recalibrate button.
 
 #### Persistent State.
 
-On the GUI script button press, the primary video_loop script is called. Upon completion, it saves an image or video output. This output is then utilized by the GUI script after it is available to display the output image/video.
+The Jetson contains a file that holds the camera homography matrices for the stitching program. These are used to compute perspective warping to overlap each of the images into one ‘panoramic’ image. This homography matrix file is modified when camera recalibration is called.
 
 #### Internal System
 
-The main processing step of the system is stitching 6 camera images together into one panoramic image. This is done every cycle. For this step, we have 3 different algorithms that can be used, with different performance and quality for each.
+The main processing step occurs when the Jetson captures images from each of the 6 (3 currently at the time of this documentation) cameras, uses the stored homography matrix to warp the 6 (3) images together, and then outputs the images to a communication bus (such as serial or network socket). 
 
-The simplest algorithm is shifting the images from each camera until they overlap. This has the benefit of being extremely fast, but the images do not line up perfectly. The second algorithm is to use the OpenCV image stitcher. This has the benefit of near-perfect quality, However, images are frequently dropped from the end product, as keypoint matching fails. It also takes the longest amount of time. A third algorithm is being developed in an attempt at a middle ground. It does keypoint detection and matching once to create a homography matrix, then uses this homography matrix to stitch the images together. This has the benefit of being fast, at the cost of slightly lower quality than the OpenCV stitching algorithm.
+Additionally, there is a calibration function that searches for key point matches between the images and computes a homography matrix that maps the coordinates of pixels in each image to the final coordinate system of the stitched image. At present, the images from two non-adjacent cameras that are both adjacent to the same camera are mapped to the plane of the camera in between them. The result of this calibration can be stored on the Jetson and loaded by the stitching program.
