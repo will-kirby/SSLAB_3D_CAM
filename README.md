@@ -75,7 +75,7 @@ Displays GUI for viewing stitched images (will be updated to support videos)
 
 ![UI_Diagram](Milestones/UI-Diagram.jpg)
 
-## Specifications (Alpha Build)
+## Specifications (Beta Build)
 
 ### Usability
 
@@ -114,7 +114,7 @@ The GUI is a simple window UI that contains three buttons: a button to start rec
 
 ### Vertical Features
 
-- See [Alpha Test Plan](/Milestones/Alpha_Test_Plan.pdf) for User Diagram
+- See [Beta Test Plan](/Milestones/Beta_Test_Plan.pdf) for User Diagram
 
 #### External Interface
 
