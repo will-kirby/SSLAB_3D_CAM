@@ -10,14 +10,17 @@ class CameraSystem:
     homographyMatrix = []
     
 
-    def __init__(self, cameraIndexList=[], compressCameraFeed=True):
+    def __init__(self, cameraIndexList=[], compressCameraFeed=True, useLinuxCam=True):
         # cameraIndexList is either a range or a list of the camera indices
 
         self.cameraIndexList = list(cameraIndexList)
 
         for i in cameraIndexList:
-            camera = cv.VideoCapture(f"/dev/camera{i}")
-            #camera = cv.VideoCapture(i)
+            if useLinuxCam:
+                camera = cv.VideoCapture(f"/dev/camera{i}")
+            else:
+                camera = cv.VideoCapture(i)
+                
             if not camera.isOpened():
                 print(f"Cannot open camera {i}")
                 raise Exception(f"Unable to open camera {i}")
