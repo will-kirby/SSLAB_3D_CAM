@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from CameraSystemClass import CameraSystem
 
-numCams = 3
+numCams = 1
 global cam
 print("Starting flask")
 app = Flask(__name__)
@@ -39,7 +39,7 @@ def initialize():
     global cam
     print("Constructing camera system")
     if numCams == 1:
-       cam = CameraSystem([0],compressCameraFeed=False) # laptop cam
+       cam = CameraSystem([0],compressCameraFeed=False,useLinuxCam=False) # laptop cam
     elif numCams == 2:
        cam = CameraSystem([0,1],compressCameraFeed=False) # two cams may need more work, i'm using Hl right now
     elif numCams == 3:
@@ -48,14 +48,15 @@ def initialize():
     print("Calculating homography for 0, 1, 2")
     frames = cam.captureCameraImages()
     #frames = cam.readFramesFromFiles(["capture0.png", "capture1.png","capture2.png"],"../images/lab_5/")
-    Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-    if (Hl is not None and Hr is not None):
-       # Save homo to file
-       print("Saving homo to file")
-       cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
-   
-    else:
-       print("Not enough matches detected to compute homography")
+    if numCams > 1:
+      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+      if (Hl is not None and Hr is not None):
+         # Save homo to file
+         print("Saving homo to file")
+         cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
+      
+      else:
+         print("Not enough matches detected to compute homography")
        
 @app.route('/vid',methods=['GET'])
 def vid():
@@ -93,4 +94,5 @@ def toggleVidInput():
 
 if __name__ == '__main__':
     initialize()
-    app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
+   #  app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
+    app.run(host='localhost',port=5000, debug=False, threaded=True)
