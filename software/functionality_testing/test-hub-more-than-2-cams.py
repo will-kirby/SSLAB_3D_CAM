@@ -54,7 +54,7 @@ print(f"{num_cameras} successfully opened")
 
 print("Press 'c' to capture image and quit")
 print("Press 'q' to quit")
-print("Press 's' to push images together")
+#print("Press 's' to push images together")
 
 while True:
     frames = []
@@ -75,7 +75,7 @@ while True:
     cv.imshow('raw camera', np.concatenate(frames, axis=1))
 
     # calculate pushed (shape[0] is height, shape[1] is width)
-"""
+    """
     pushedImages = np.zeros((max([frame.shape[0] for frame in frames]), sum([frame.shape[1] for frame in frames]), 3), dtype="uint8" )
     
     currentWidth = 0
@@ -83,7 +83,7 @@ while True:
         pushedImages[0:frame.shape[0], (currentWidth-shiftAmount*i):(currentWidth + frame.shape[1]-shiftAmount*i)] = frame
         currentWidth += (frame.shape[1] - shiftAmount)
     cv.imshow('pushed images', pushedImages)
-"""
+    """
     if cv.waitKey(1) == ord('c'):
 
         print(len(frames))
