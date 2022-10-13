@@ -20,7 +20,7 @@ class CameraSystem:
                 camera = cv.VideoCapture(f"/dev/camera{i}")
             else:
                 camera = cv.VideoCapture(i)
-                
+
             if not camera.isOpened():
                 print(f"Cannot open camera {i}")
                 raise Exception(f"Unable to open camera {i}")
@@ -111,7 +111,7 @@ class CameraSystem:
             M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)
             matchesMask = mask.ravel().tolist()
         else:
-            print( "Not enough matches are found - {}/{}".format(len(goodMatches), MIN_MATCH_COUNT) )
+            print(f"Not enough matches are found - {len(goodMatches)}/{MIN_MATCH_COUNT}")
             matchesMask = None
             M = None
 
