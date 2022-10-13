@@ -7,7 +7,9 @@ from CameraSystemClass import CameraSystem
 numCams = 1
 global cam
 print("Starting flask")
-app = Flask(__name__)
+app = Flask(__name__,
+            static_url_path='', 
+            static_folder='web/static')
 
 def get_frame():
     global cam
@@ -91,6 +93,11 @@ def toggleVidInput():
     elif numCams == 1:
            print("Num cams is 1, nothing to recalibrate")
     return {'status' : 200}
+
+@app.route('/',methods=['GET'])
+def getWebpage():
+   print("Grabbing page")
+   return app.send_static_file('panellum.html')
 
 if __name__ == '__main__':
     initialize()
