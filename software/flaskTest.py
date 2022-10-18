@@ -17,14 +17,15 @@ def recalibrateCams():
    print("Recalibrating cams")
    frames = cam.captureCameraImages()
 
-   if numCams == 6:
-      Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
+   if numCams == 1:
+      print("Num cams is 1, nothing to recalibrate")
 
    elif numCams == 3:
       Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography.npy")
 
-   elif numCams == 1:
-         print("Num cams is 1, nothing to recalibrate")
+   elif numCams == 6:
+      Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
+      
    return {'status' : 200}
 
 def get_frame():
