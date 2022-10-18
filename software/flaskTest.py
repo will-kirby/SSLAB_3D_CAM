@@ -5,101 +5,96 @@ import numpy as np
 from CameraSystemClass import CameraSystem
 
 numCams = 1
+noStitchJustStack = False
 global cam
 print("Starting flask")
 app = Flask(__name__,
             static_url_path='', 
             static_folder='web/static')
 
+def recalibrateCams():
+   global cam
+   print("Recalibrating cams")
+   frames = cam.captureCameraImages()
+
+   if numCams == 6:
+      Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
+
+   elif numCams == 3:
+      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography.npy")
+
+   elif numCams == 1:
+         print("Num cams is 1, nothing to recalibrate")
+   return {'status' : 200}
+
 def get_frame():
-    global cam
-    print("Opening cam matrix")
-    try:
-       Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")
-    
-    except:
-       Hl, Hr = cam.openHomographyFile("savedHomographyMatrix.npy") #use some back up homography
+   global cam
+   print("Opening cam matrix")
+
+   # open matrix outside of while loop to only do it once
+   if numCams==3:
+      print("Opening 3 cam matrix")
+      Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")  
+   elif numCams==6:
+      print("Opening 6 cam matrix")
+      Hl, Hr, Hl2, Hr2 = cam.openHomographyFile("testFlaskHomography.npy")  
        
-    while True:
-        if numCams == 1:
-            frames = cam.captureCameraImages()
-            im = frames[0]
-        elif numCams == 2:
-            frames = cam.captureCameraImages()
-            im = cam.homographyStitch(frames[0], frames[1], Hl)
-        elif numCams == 3:
-            frames = cam.captureCameraImages()
-            im = cam.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
+   while True:
+      frames = cam.captureCameraImages()
 
-        imgencode=cv.imencode('.jpg',im)[1]
-        stringData=imgencode.tobytes()
-        yield (b'--frame\r\n'
-            b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
-
-#@app.before_first_request
-def initialize():
-    global cam
-    print("Constructing camera system")
-    if numCams == 1:
-       cam = CameraSystem([0],compressCameraFeed=False,useLinuxCam=False) # laptop cam
-    elif numCams == 2:
-       cam = CameraSystem([0,1],compressCameraFeed=False) # two cams may need more work, i'm using Hl right now
-    elif numCams == 3:
-       cam = CameraSystem([0,1,2])
-
-    print("Calculating homography for 0, 1, 2")
-    frames = cam.captureCameraImages()
-    #frames = cam.readFramesFromFiles(["capture0.png", "capture1.png","capture2.png"],"../images/lab_5/")
-    if numCams > 1:
-      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-      if (Hl is not None and Hr is not None):
-         # Save homo to file
-         print("Saving homo to file")
-         cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
-      
+      if noStitchJustStack:
+         im = np.hstack(frames)
       else:
-         print("Not enough matches detected to compute homography")
+         if numCams == 1:
+            im = frames[0]
+         elif numCams == 3:
+            im = cam.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
+         elif numCams == 6:
+            im = cam.homographyStitchTripleTwice(frames, Hl, Hr, Hl2, Hr2)
+
+      imgencode=cv.imencode('.jpg',im)[1]
+      stringData=imgencode.tobytes()
+      yield (b'--frame\r\n'
+         b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
+
+def initialize():
+   global cam
+   print("Constructing camera system")
+   if numCams == 1:
+      print("Init 1 camera")
+      cam = CameraSystem([0],compressCameraFeed=False,useLinuxCam=False) # laptop cam
+   elif numCams == 3:
+      print("Init 3 cameras")
+      cam = CameraSystem([0,1,2])
+   elif numCams == 6:
+      print("Init 6 cameras")
+      cam = CameraSystem(list(range(6)))
+
+   print("Done init, calling recal")
+   recalibrateCams()
+   
        
 @app.route('/vid',methods=['GET'])
 def vid():
-     global cam
-     return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
+   global cam
+   return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/vid', methods=['POST'])
-def toggleVidInput():
-    global cam
-    print("Recalibrating input")
-    frames = cam.captureCameraImages()
-    if numCams == 3:
-        Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-        if (Hl is not None and Hr is not None):
-           # Save homo to file
-           print("Saving homo to file")
-           cam.saveHomographyToFile([Hl, Hr],"testFlaskHomography.npy")
-   
-        else:
-           print("Not enough matches detected to compute homography")
-       
-    elif numCams == 2:
-        H, matchesMask = cam.calibrateMatrix()
-        if (H is not None):
-           # Save homo to file
-           print("Saving homo to file")
-           cam.saveHomographyToFile([H],"testFlaskHomography.npy")
-   
-        else:
-           print("Not enough matches detected to compute homography")
+def recalibrateCamerasRoute():
+   recalibrateCams()
 
-    elif numCams == 1:
-           print("Num cams is 1, nothing to recalibrate")
-    return {'status' : 200}
 
-@app.route('/',methods=['GET'])
+@app.route('/panVid',methods=['GET'])
 def getWebpage():
-   print("Grabbing page")
+   print("Grabbing panellum page")
    return app.send_static_file('panellum.html')
 
+@app.route('/',methods=['GET'])
+def getCamWebpage():
+   print("Grabbing cam page")
+   return app.send_static_file('cams.html')
+
 if __name__ == '__main__':
-    initialize()
-   #  app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
-    app.run(host='localhost',port=5000, debug=False, threaded=True)
+   initialize()
+#  app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
+   app.run(host='localhost',port=5000, debug=False, threaded=True)
