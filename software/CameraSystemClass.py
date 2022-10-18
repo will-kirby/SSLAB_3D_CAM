@@ -65,11 +65,11 @@ class CameraSystem:
     def readFramesFromFiles(self, fileNames, basePath=""):
         return [cv.imread(basePath + name) for name in fileNames]
 
-    def reorderCams(newOrderIndexList):
-        # pass the index of each camera in the new order -> if want 3rd index first, pass in [3, ..]
-        if max(newOrderIndexList) >= len(self.cameras):
-            raise Exception("Bad new order passed in, index out of bounds")
-        self.cameras[:] = [self.cameras[i] for i in list(newOrderIndexList)]
+    # def reorderCams(newOrderIndexList):
+    #     # pass the index of each camera in the new order -> if want 3rd index first, pass in [3, ..]
+    #     if max(newOrderIndexList) >= len(self.cameras):
+    #         raise Exception("Bad new order passed in, index out of bounds")
+    #     self.cameras[:] = [self.cameras[i] for i in list(newOrderIndexList)]
 
     def _findKPandDesSingle(self, frame):
         sift = cv.SIFT_create()
@@ -140,6 +140,12 @@ class CameraSystem:
 
         return stitch
 
+    def homographyStitchTripleTwice(self, frames, Hl, Hr, Hl2, Hr2):
+        im1 = tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
+        im2 = tripleHomographyStitch(frames[3], frames[4], frames[5], Hl2, Hr2)
+
+        return np.vstack((im1,im2))
+
     def overlapStitch(self, frames, overlapAmount=None):
         if overlapAmount:
             shiftAmount = overlapAmount
@@ -162,25 +168,41 @@ class CameraSystem:
         """
         np.save(fileName, np.array(homographyMat))
 
-    def openHomographyFile(self, fileName : str = "savedHomographyMatrix.npy"):
+    def openHomographyFile(self, fileName : str = "homographyMatrix.npy", backupFile : str = "savedHomographyMatrix.npy"):
         """
         Open a homography matrix file, returns a list of each homography matrix
+        Also takes in a backup file, falls back on it if unable to open the standard
         """
-        return list(np.load(fileName))
+        try:
+            matrix = list(np.load(fileName))
+        except:
+            print(f"Unable to open {fileName}, falling back on backup")
+            matrix = list(np.load(backupFile))
+
+        return matrix
 
     def displayFrameMatplotlib(self, frame):
         plt.imshow(frame)
         plt.show()
 
-    def calibrateMatrix(self):
+    def calibrateMatrix(self, save=False, filename: str = "testFlaskHomography.npy"):
         frames = self.captureCameraImages()
         kp, des = self._findKPandDesMultiple(frames)
         goodMatches = self.matchDescriptors(des[0], des[1])
         H, matchesMask = self.findHomographyFromMatched(goodMatches, kp[0], kp[1])
 
+        if save:
+            if H:
+                # Save homo to file
+                print(f"Saving homo H to file {filename}")
+                cam.saveHomographyToFile([H],filename)
+
+            else:
+                print("Not enough matches detected to compute homography")
+
         return H, matchesMask
 
-    def calibrateMatrixTriple(self, imgL, imgM, imgR):
+    def calibrateMatrixTriple(self, imgL, imgM, imgR, save=False, filename: str = "testFlaskHomography.npy"):
         # kp,des,and match: the parameters are the right image then left image, the right image then gets warped
         kp, des = self._findKPandDesMultiple([imgR, imgM, np.flip(imgL,1), np.flip(imgM,1)])
         goodMatchesRight = self.matchDescriptors(des[0], des[1])
@@ -188,7 +210,30 @@ class CameraSystem:
         goodMatchesLeft = self.matchDescriptors(des[2], des[3])
         Hleft, matchesMask = self.findHomographyFromMatched(goodMatchesLeft, kp[2], kp[3])
 
+        if save:
+            if Hleft and Hright:
+            # Save homo to file
+                print(f"Saving homo Hleft, Hright to file {filename}")
+                cam.saveHomographyToFile([Hleft, Hright],filename)
+
+            else:
+                print("Not enough matches detected to compute homography")
+
         return Hleft, Hright
+
+    def calibrateMatrixTripleTwice(self, frames, save=False, filename: str = "testFlaskHomography.npy"):
+        Hlf, Hrf = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+        Hlb, Hrb = cam.calibrateMatrixTriple(frames[3], frames[4], frames[5])
+
+        if save:
+            if Hlf and Hrf and Hlb and Hrb:
+                print(f"Saving homo to file {filename}")
+                cam.saveHomographyToFile([Hlf, Hrf, Hlb, Hrb],filename)
+
+            else:
+                print("Not enough matches detected to compute homography")
+
+        return Hlr, Hrf, Hlb, Hrb
 
     def fishEyeTransform(self, frame):
         # TBD. I think this is really important. If you apply fisheye to each image,
