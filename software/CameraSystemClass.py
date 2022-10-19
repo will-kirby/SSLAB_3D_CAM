@@ -141,8 +141,8 @@ class CameraSystem:
         return stitch
 
     def homographyStitchTripleTwice(self, frames, Hl, Hr, Hl2, Hr2):
-        im1 = tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
-        im2 = tripleHomographyStitch(frames[3], frames[4], frames[5], Hl2, Hr2)
+        im1 = self.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
+        im2 = self.tripleHomographyStitch(frames[3], frames[4], frames[5], Hl2, Hr2)
 
         return np.vstack((im1,im2))
 
@@ -192,10 +192,10 @@ class CameraSystem:
         H, matchesMask = self.findHomographyFromMatched(goodMatches, kp[0], kp[1])
 
         if save:
-            if H:
+            if H is not None:
                 # Save homo to file
                 print(f"Saving homo H to file {filename}")
-                cam.saveHomographyToFile([H],filename)
+                self.saveHomographyToFile([H],filename)
 
             else:
                 print("Not enough matches detected to compute homography")
@@ -211,10 +211,10 @@ class CameraSystem:
         Hleft, matchesMask = self.findHomographyFromMatched(goodMatchesLeft, kp[2], kp[3])
 
         if save:
-            if Hleft and Hright:
+            if Hleft is not None and Hright is not None:
             # Save homo to file
                 print(f"Saving homo Hleft, Hright to file {filename}")
-                cam.saveHomographyToFile([Hleft, Hright],filename)
+                self.saveHomographyToFile([Hleft, Hright],filename)
 
             else:
                 print("Not enough matches detected to compute homography")
@@ -222,18 +222,18 @@ class CameraSystem:
         return Hleft, Hright
 
     def calibrateMatrixTripleTwice(self, frames, save=False, filename: str = "testFlaskHomography.npy"):
-        Hlf, Hrf = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2])
-        Hlb, Hrb = cam.calibrateMatrixTriple(frames[3], frames[4], frames[5])
+        Hlf, Hrf = self.calibrateMatrixTriple(frames[0], frames[1], frames[2])
+        Hlb, Hrb = self.calibrateMatrixTriple(frames[3], frames[4], frames[5])
 
         if save:
-            if Hlf and Hrf and Hlb and Hrb:
+            if Hlf is not None and Hrf is not None and Hlb is not None and Hrb is not None:
                 print(f"Saving homo to file {filename}")
-                cam.saveHomographyToFile([Hlf, Hrf, Hlb, Hrb],filename)
+                self.saveHomographyToFile([Hlf, Hrf, Hlb, Hrb],filename)
 
             else:
                 print("Not enough matches detected to compute homography")
 
-        return Hlr, Hrf, Hlb, Hrb
+        return Hlf, Hrf, Hlb, Hrb
 
     def fishEyeTransform(self, frame):
         # TBD. I think this is really important. If you apply fisheye to each image,

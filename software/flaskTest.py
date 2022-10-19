@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from CameraSystemClass import CameraSystem
 
-numCams = 1
+numCams = 6
 noStitchJustStack = False
 global cam
 print("Starting flask")
@@ -24,7 +24,9 @@ def recalibrateCams():
       Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography.npy")
 
    elif numCams == 6:
-      Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
+      #Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
+      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography0.npy")
+      Hl2, Hr2 = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography1.npy")
       
    return {'status' : 200}
 
@@ -37,9 +39,15 @@ def get_frame():
       print("Opening 3 cam matrix")
       Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")  
    elif numCams==6:
-      print("Opening 6 cam matrix")
-      Hl, Hr, Hl2, Hr2 = cam.openHomographyFile("testFlaskHomography.npy")  
-       
+      #print("Opening 6 cam matrix")
+         #Hl, Hr, Hl2, Hr2 = cam.openHomographyFile("testFlaskHomography6.npy")
+         Hl, Hr = cam.openHomographyFile("testFlaskHomography0.npy", "testFlaskHomography.npy")
+         print("Opening cam matrix 1")
+
+         Hl2, Hr2 = cam.openHomographyFile("testFlaskHomography1.npy", "testFlaskHomography.npy")
+         print("Opening cam matrix 2")
+      
+         
    while True:
       frames = cam.captureCameraImages()
 
@@ -82,7 +90,9 @@ def vid():
 
 @app.route('/vid', methods=['POST'])
 def recalibrateCamerasRoute():
+   global cam
    recalibrateCams()
+   return {'status' : 200}
 
 
 @app.route('/panVid',methods=['GET'])
@@ -97,5 +107,5 @@ def getCamWebpage():
 
 if __name__ == '__main__':
    initialize()
-#  app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
-   app.run(host='localhost',port=5000, debug=False, threaded=True)
+   app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
+   #app.run(host='localhost',port=5000, debug=False, threaded=True)
