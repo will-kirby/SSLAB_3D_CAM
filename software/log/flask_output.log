@@ -1,0 +1,23 @@
+/usr/lib/python3/dist-packages/Jetson/GPIO/gpio.py:386: RuntimeWarning: This channel is already in use, continuing anyway. Use GPIO.setwarnings(False) to disable warnings
+  RuntimeWarning)
+Starting flask
+Constructing camera system
+Init 6 cameras
+Done init, calling recal
+Recalibrating cams
+Not enough matches are found - 7/20
+Not enough matches are found - 5/20
+Not enough matches detected to compute homography
+Not enough matches are found - 1/20
+Not enough matches are found - 2/20
+Not enough matches detected to compute homography
+ * Serving Flask app 'flaskTest' (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://192.168.55.1:5000/ (Press CTRL+C to quit)
+Opening cam matrix
+Opening cam matrix 1
+Opening cam matrix 2
+192.168.55.100 - - [19/Oct/2022 00:17:28] "GET /vid HTTP/1.1" 200 -

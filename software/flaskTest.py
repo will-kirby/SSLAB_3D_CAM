@@ -3,14 +3,29 @@ import cv2 as cv
 import sys
 import numpy as np
 from CameraSystemClass import CameraSystem
+import Jetson.GPIO as GPIO
+import signal
 
 numCams = 6
+led_pin=12
 noStitchJustStack = False
 global cam
+
+GPIO.setmode(GPIO.BOARD) 
+GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.LOW)
+
 print("Starting flask")
 app = Flask(__name__,
             static_url_path='', 
             static_folder='web/static')
+
+def kill_signal_handler(signum, frame):
+    print(f"Received kill signal {signum}. Exiting...")
+    GPIO.output(led_pin, GPIO.LOW)
+    sys.exit(0)
+ 
+signal.signal(signal.SIGINT,kill_signal_handler)
+signal.signal(signal.SIGTERM,kill_signal_handler)
 
 def recalibrateCams():
    global cam
@@ -26,7 +41,7 @@ def recalibrateCams():
    elif numCams == 6:
       #Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
       Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography0.npy")
-      Hl2, Hr2 = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography1.npy")
+      Hl2, Hr2 = cam.calibrateMatrixTriple(frames[3], frames[4], frames[5], save=True, filename="testFlaskHomography1.npy")
       
    return {'status' : 200}
 
@@ -106,6 +121,12 @@ def getCamWebpage():
    return app.send_static_file('cams.html')
 
 if __name__ == '__main__':
-   initialize()
-   app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
-   #app.run(host='localhost',port=5000, debug=False, threaded=True)
+   try:
+      initialize()
+      app.run(host='192.168.55.1',port=5000, debug=False, threaded=True)
+      #app.run(host='localhost',port=5000, debug=False, threaded=True)
+   except Exception as e:
+     print(e)
+     print("Excpetion raised. Exiting...")
+     GPIO.output(led_pin, GPIO.LOW)
+     sys.exit(-1)
