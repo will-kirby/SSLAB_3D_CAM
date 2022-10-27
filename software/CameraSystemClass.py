@@ -104,7 +104,7 @@ class CameraSystem:
         return goodMatches
 
     def findHomographyFromMatched(self, goodMatches, kp1, kp2):
-        MIN_MATCH_COUNT = 20 # minimum of 10 matches to start stitching
+        MIN_MATCH_COUNT = 15 # minimum of 10 matches to start stitching
         if len(goodMatches)>MIN_MATCH_COUNT:
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in goodMatches ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in goodMatches ]).reshape(-1,1,2)
@@ -144,7 +144,7 @@ class CameraSystem:
         im1 = self.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
         im2 = self.tripleHomographyStitch(frames[3], frames[4], frames[5], Hl2, Hr2)
 
-        return np.vstack((im1,im2))
+        return np.hstack((im1,im2))#np.vstack((im1,im2))
 
     def overlapStitch(self, frames, overlapAmount=None):
         if overlapAmount:

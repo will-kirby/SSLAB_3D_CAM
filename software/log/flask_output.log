@@ -5,11 +5,10 @@ Constructing camera system
 Init 6 cameras
 Done init, calling recal
 Recalibrating cams
-Not enough matches are found - 7/20
-Not enough matches are found - 5/20
+Not enough matches are found - 8/15
+Not enough matches are found - 4/15
 Not enough matches detected to compute homography
-Not enough matches are found - 1/20
-Not enough matches are found - 2/20
+Not enough matches are found - 4/15
 Not enough matches detected to compute homography
  * Serving Flask app 'flaskTest' (lazy loading)
  * Environment: production
@@ -17,7 +16,32 @@ Not enough matches detected to compute homography
    Use a production WSGI server instead.
  * Debug mode: off
  * Running on http://192.168.55.1:5000/ (Press CTRL+C to quit)
+Grabbing panellum page
+192.168.55.100 - - [26/Oct/2022 20:20:14] "GET /panVid HTTP/1.1" 304 -
 Opening cam matrix
 Opening cam matrix 1
 Opening cam matrix 2
-192.168.55.100 - - [19/Oct/2022 00:17:28] "GET /vid HTTP/1.1" 200 -
+192.168.55.100 - - [26/Oct/2022 20:20:14] "GET /vid HTTP/1.1" 200 -
+Recalibrating cams
+Saving homo Hleft, Hright to file testFlaskHomography0.npy
+Not enough matches are found - 14/15
+Not enough matches detected to compute homography
+192.168.55.100 - - [26/Oct/2022 20:20:32] "POST /vid HTTP/1.1" 200 -
+Grabbing panellum page
+192.168.55.100 - - [26/Oct/2022 20:20:32] "GET /panVid HTTP/1.1" 304 -
+Opening cam matrix
+Opening cam matrix 1
+Opening cam matrix 2
+192.168.55.100 - - [26/Oct/2022 20:20:33] "GET /vid HTTP/1.1" 200 -
+Recalibrating cams
+Not enough matches are found - 14/15
+Not enough matches detected to compute homography
+Not enough matches are found - 7/15
+Not enough matches detected to compute homography
+192.168.55.100 - - [26/Oct/2022 20:21:12] "POST /vid HTTP/1.1" 200 -
+Grabbing panellum page
+192.168.55.100 - - [26/Oct/2022 20:21:12] "GET /panVid HTTP/1.1" 304 -
+Opening cam matrix
+Opening cam matrix 1
+Opening cam matrix 2
+192.168.55.100 - - [26/Oct/2022 20:21:12] "GET /vid HTTP/1.1" 200 -

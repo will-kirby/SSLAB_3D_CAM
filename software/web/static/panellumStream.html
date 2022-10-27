@@ -1,0 +1,65 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pannellum Video Demo</title>
+    <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
+    <style>
+    #panorama {
+       width: 100%;
+       height: 400px;
+    }
+    </style>
+    <button name="refresh" onclick="refreshStream()">Refresh</button>
+    <button name="recalibrate" onclick="recalibrateStream()">Recalibrate</button>
+    
+</head>
+<body>
+
+<div id="panorama"></div>
+
+<script>
+var image = document.createElement('img');
+viewer = pannellum.viewer('panorama', {
+     "type": "equirectangular",
+     "panorama": image,
+     "dynamic": true,
+     "autoLoad": true,
+     "vaov": 120
+});
+image.onload = function(){
+   viewer.setUpdate(true);
+}
+image.src = 'http://192.168.55.1:5000/vid';
+</script>
+
+<script>
+    function recalibrateStream(){
+        console.log("Recal called")
+        fetch("http://192.168.55.1:5000/vid", {
+        // fetch("http://localhost:5000/vid", {
+
+            method: "post",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'no-cors',
+            body: JSON.stringify({})
+            })
+            .then( (response) => { 
+                console.log("Good response")
+                refreshStream()
+            }).catch(res => {
+                console.log("Error occured in POST recalibrate",res)
+            })
+    }
+    function refreshStream(){
+        location.reload()
+    }
+</script>
+
+
+
+</body>
+</html>

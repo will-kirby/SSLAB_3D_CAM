@@ -113,12 +113,12 @@ def recalibrateCamerasRoute():
 @app.route('/panVid',methods=['GET'])
 def getWebpage():
    print("Grabbing panellum page")
-   return app.send_static_file('panellum.html')
+   return app.send_static_file('panellumStream.html')
 
 @app.route('/',methods=['GET'])
 def getCamWebpage():
    print("Grabbing cam page")
-   return app.send_static_file('cams.html')
+   return app.send_static_file('camHtmlRemote.html')
 
 if __name__ == '__main__':
    try:
