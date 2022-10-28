@@ -22,7 +22,7 @@ For a more technical background see [Preliminary Report](Milestones/Preliminary_
 
 ### Behavior Diagram
 
-![Behavior_Diagram](Milestones/Alpha_Design_Behavior.drawio.png)
+![Behavior_Diagram](Milestones/Alpha_Design_Behavior.jpg)
 
 # Design Milestones
 
