@@ -108,8 +108,8 @@ class CameraSystem:
         return goodMatches
 
     def findHomographyFromMatched(self, goodMatches, kp1, kp2):
-        MIN_MATCH_COUNT = 15 # minimum of 10 matches to start stitching
-        if len(goodMatches)>MIN_MATCH_COUNT:
+        MIN_MATCH_COUNT = 4 # minimum of 10 matches to start stitching
+        if len(goodMatches)>=MIN_MATCH_COUNT:
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in goodMatches ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in goodMatches ]).reshape(-1,1,2)
             M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)

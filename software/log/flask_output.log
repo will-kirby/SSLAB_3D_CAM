@@ -5,43 +5,19 @@ Constructing camera system
 Init 6 cameras
 Done init, calling recal
 Recalibrating cams
-Not enough matches are found - 8/15
-Not enough matches are found - 4/15
-Not enough matches detected to compute homography
-Not enough matches are found - 4/15
-Not enough matches detected to compute homography
+Saving homo Hleft, Hright to file testFlaskHomography0.npy
+Saving homo Hleft, Hright to file testFlaskHomography1.npy
  * Serving Flask app 'flaskTest' (lazy loading)
  * Environment: production
    WARNING: This is a development server. Do not use it in a production deployment.
    Use a production WSGI server instead.
  * Debug mode: off
  * Running on http://192.168.55.1:5000/ (Press CTRL+C to quit)
-Grabbing panellum page
-192.168.55.100 - - [26/Oct/2022 20:20:14] "GET /panVid HTTP/1.1" 304 -
+Grabbing cam page
+192.168.55.100 - - [01/Nov/2022 11:36:11] "GET / HTTP/1.1" 304 -
 Opening cam matrix
 Opening cam matrix 1
 Opening cam matrix 2
-192.168.55.100 - - [26/Oct/2022 20:20:14] "GET /vid HTTP/1.1" 200 -
-Recalibrating cams
-Saving homo Hleft, Hright to file testFlaskHomography0.npy
-Not enough matches are found - 14/15
-Not enough matches detected to compute homography
-192.168.55.100 - - [26/Oct/2022 20:20:32] "POST /vid HTTP/1.1" 200 -
-Grabbing panellum page
-192.168.55.100 - - [26/Oct/2022 20:20:32] "GET /panVid HTTP/1.1" 304 -
-Opening cam matrix
-Opening cam matrix 1
-Opening cam matrix 2
-192.168.55.100 - - [26/Oct/2022 20:20:33] "GET /vid HTTP/1.1" 200 -
-Recalibrating cams
-Not enough matches are found - 14/15
-Not enough matches detected to compute homography
-Not enough matches are found - 7/15
-Not enough matches detected to compute homography
-192.168.55.100 - - [26/Oct/2022 20:21:12] "POST /vid HTTP/1.1" 200 -
-Grabbing panellum page
-192.168.55.100 - - [26/Oct/2022 20:21:12] "GET /panVid HTTP/1.1" 304 -
-Opening cam matrix
-Opening cam matrix 1
-Opening cam matrix 2
-192.168.55.100 - - [26/Oct/2022 20:21:12] "GET /vid HTTP/1.1" 200 -
+192.168.55.100 - - [01/Nov/2022 11:36:11] "GET /vid HTTP/1.1" 200 -
+Received kill signal 15. Exiting...
+terminate called without an active exception
