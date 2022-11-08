@@ -10,6 +10,8 @@ numCams = 3
 led_pin=12
 noStitchJustStack = False
 Cylindrical = True
+cylWarpInitial = 200
+cylWarpIncrement = 5
 global cam
 
 GPIO.setmode(GPIO.BOARD) 
@@ -33,7 +35,7 @@ def recalibrateCams():
    print("Recalibrating cams")
    frames = cam.captureCameraImages()
    if Cylindrical:
-         frames = cam.cylWarpFrames(frames)
+         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
          cam.calcHomographyWarped(frames, saveHomo = True, fileName=f"Cylindrical{numCams}.npy")
    else:
 
@@ -54,6 +56,7 @@ def recalibrateCams():
 def get_frame():
    global cam
    print("Opening cam matrix")
+   
    if not noStitchJustStack:
    # open matrix outside of while loop to only do it once
       if Cylindrical:
@@ -76,14 +79,19 @@ def get_frame():
          
    while True:
       frames = cam.captureCameraImages()
+
+      # hstack frames, no stitching
       if noStitchJustStack:
          if Cylindrical:
-            frames = cam.cylWarpFrames(frames)
+            frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
          im = np.hstack(frames)
   
+      # stitch with cylindrical warp
       elif Cylindrical:
-         frames = cam.cylWarpFrames(frames)
+         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
          im = cam.stitchWarped(frames, homoList)
+
+      # stitch, no warping
       else:
          if numCams == 1:
             im = frames[0]
@@ -101,36 +109,18 @@ def initialize():
    global cam
    print("Constructing camera system")
    print(f"Init {numCams} cameras")
-   cam = CameraSystem(list(range(numCams)), useLinuxCam=True)
-   """
-   if numCams == 1:
-      print("Init 1 camera")
-      cam = CameraSystem([0],compressCameraFeed=False,useLinuxCam=False) # laptop cam
-   elif numCams == 3:
-      print("Init 3 cameras")
-      cam = CameraSystem([0,1,2], useLinuxCam=False)
-   elif numCams == 4:
-      print("Init 4 cameras")
-      cam = CameraSystem(list(range(4)), useLinuxCam=False)
-   elif numCams == 5:
-      print("Init 5 cameras")
-      cam = CameraSystem(list(range(5)), useLinuxCam=False)
-   elif numCams == 6:
-      print("Init 6 cameras")
-      cam = CameraSystem(list(range(6)), useLinuxCam=True)
-    """
+   cam = CameraSystem(range(numCams), useLinuxCam=True)
+
    print("Done init, calling recal")
    recalibrateCams()
    
        
 @app.route('/vid',methods=['GET'])
 def vid():
-   global cam
    return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/vid', methods=['POST'])
 def recalibrateCamerasRoute():
-   global cam
    recalibrateCams()
    return {'status' : 200}
 
