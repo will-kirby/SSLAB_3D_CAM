@@ -1,0 +1,13 @@
+[Unit]
+After=network.target
+Description="Run flask Server for stitching on boot"
+[Service]
+WorkingDirectory=/home/lab/SSLAB_3D_CAM/software
+StandardOutput=/home/lab/SSLAB_3D_CAM/software/flask_output.log
+ExecStart=/bin/sh -c 'exec /usr/bin/python3 -u /home/lab/SSLAB_3D_CAM/software/flaskTest.py > /home/lab/SSLAB_3D_CAM/software/log/flask_output.log 2>&1'
+User=lab
+#Restart=always
+#RestartSec=1 
+[Install]
+WantedBy=multi-user.target
+

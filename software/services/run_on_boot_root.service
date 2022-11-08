@@ -1,0 +1,10 @@
+[Unit]
+After=network.target
+Description="Run flask Server for stitching on boot"
+[Service]
+WorkingDirectory=/usr/local/bin
+StandardOutput=flask_output.log
+ExecStart=/bin/sh -c 'exec /usr/bin/python3 -u /usr/local/bin/flaskTest.py > /usr/local/bin/flask_output.log 2>&1'
+User=root
+[Install]
+WantedBy=multi-user.target
