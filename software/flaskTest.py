@@ -6,10 +6,10 @@ from CameraSystemClass import CameraSystem
 import Jetson.GPIO as GPIO
 import signal
 
-numCams = 6
+numCams = 3
 led_pin=12
-noStitchJustStack = True
-Cylindrical = False
+noStitchJustStack = False
+Cylindrical = True
 global cam
 
 GPIO.setmode(GPIO.BOARD) 
@@ -32,21 +32,21 @@ def recalibrateCams():
    global cam
    print("Recalibrating cams")
    frames = cam.captureCameraImages()
+   if Cylindrical:
+         frames = cam.cylWarpFrames(frames)
+         cam.calcHomographyWarped(frames, saveHomo = True, fileName=f"Cylindrical{numCams}.npy")
+   else:
 
-   if numCams == 1:
-      print("Num cams is 1, nothing to recalibrate")
+      if numCams == 1:
+         print("Num cams is 1, nothing to recalibrate")
 
-   elif numCams == 3:
-      Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography.npy")
+      elif numCams == 3:
+         Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography.npy")
 
-   elif numCams == 6:
-     if not Cylindrical:
+      elif numCams == 6:
          #Hl, Hr, Hl2, Hr2 = cam.calibrateMatrixTripleTwice(frames, save=True, filename="testFlaskHomography6.npy")
          Hl, Hr = cam.calibrateMatrixTriple(frames[0], frames[1], frames[2], save=True, filename="testFlaskHomography0.npy")
          Hl2, Hr2 = cam.calibrateMatrixTriple(frames[3], frames[4], frames[5], save=True, filename="testFlaskHomography1.npy")
-     else:
-         frames = cam.cylWarpFrames(frames)
-         cam.calcHomographyWarped(frames, saveHomo = True, fileName="Cylindrical.npy")
         
       
    return {'status' : 200}
@@ -54,16 +54,18 @@ def recalibrateCams():
 def get_frame():
    global cam
    print("Opening cam matrix")
-
+   if not noStitchJustStack:
    # open matrix outside of while loop to only do it once
-   if numCams==3:
-      print("Opening 3 cam matrix")
-      Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")  
-   elif numCams==6:
-      #print("Opening 6 cam matrix")
-         if Cylindrical and not noStitchJustStack:
-             homoList = cam.openHomographyFile("Cylindrical.npy", "Cylindrical_Backup.npy")
-         else:
+      if Cylindrical:
+            print(f"Opening cylindrical homography matrices for {numCams} cameras")
+            homoList = cam.openHomographyFile(f"Cylindrical{numCams}.npy", f"Cylindrical{numCams}_Backup.npy")
+      else:
+         if numCams==3:
+            print("Opening 3 cam matrix")
+            Hl, Hr = cam.openHomographyFile("testFlaskHomography.npy")  
+         elif numCams==6:
+            print("Opening 6 cam matrix")
+    
             #Hl, Hr, Hl2, Hr2 = cam.openHomographyFile("testFlaskHomography6.npy")
             Hl, Hr = cam.openHomographyFile("testFlaskHomography0.npy", "testFlaskHomography.npy")
             print("Opening cam matrix 1")
@@ -74,23 +76,21 @@ def get_frame():
          
    while True:
       frames = cam.captureCameraImages()
-
       if noStitchJustStack:
          if Cylindrical:
             frames = cam.cylWarpFrames(frames)
          im = np.hstack(frames)
+  
+      elif Cylindrical:
+         frames = cam.cylWarpFrames(frames)
+         im = cam.stitchWarped(frames, homoList)
       else:
          if numCams == 1:
             im = frames[0]
          elif numCams == 3:
             im = cam.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
          elif numCams == 6:
-            if Cylindrical:
-
-               im = cam.stitchWarped(frames, homoList)
-               
-            else:
-               im = cam.homographyStitchTripleTwice(frames, Hl, Hr, Hl2, Hr2)
+            im = cam.homographyStitchTripleTwice(frames, Hl, Hr, Hl2, Hr2)
 
       imgencode=cv.imencode('.jpg',im)[1]
       stringData=imgencode.tobytes()
@@ -100,6 +100,9 @@ def get_frame():
 def initialize():
    global cam
    print("Constructing camera system")
+   print(f"Init {numCams} cameras")
+   cam = CameraSystem(list(range(numCams)), useLinuxCam=True)
+   """
    if numCams == 1:
       print("Init 1 camera")
       cam = CameraSystem([0],compressCameraFeed=False,useLinuxCam=False) # laptop cam
@@ -115,7 +118,7 @@ def initialize():
    elif numCams == 6:
       print("Init 6 cameras")
       cam = CameraSystem(list(range(6)), useLinuxCam=True)
-
+    """
    print("Done init, calling recal")
    recalibrateCams()
    
