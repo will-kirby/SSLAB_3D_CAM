@@ -141,7 +141,7 @@ class CameraSystem:
             # - this is necessary to line up the coordinates, as origin is at top left
         if borderAmount is None:
             borderAmount = imgMiddle.shape[1]
-        return cv.copyMakeBorder(imgMain,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
+        return cv.copyMakeBorder(imgMiddle,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
 
     def _cylindricalWarp(self, img, K):
         """This function returns the cylindrical warp for a given image and intrinsics matrix K"""
