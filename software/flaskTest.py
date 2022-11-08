@@ -91,6 +91,9 @@ def get_frame():
          frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
          im = cam.stitchWarped(frames, homoList)
 
+         # crop image to remove black space (if there is excess)
+         im = cam.cropToBlob(im)
+
       # stitch, no warping
       else:
          if numCams == 1:
