@@ -136,12 +136,12 @@ class CameraSystem:
 
         return img[y:y2, x:x2]
 
-    def borderMiddleImg(imgMiddle, borderAmount = None):
+    def borderImg(self, img, borderAmount = None):
         # add border to left and right of middle so the left image has space to appear 
             # - this is necessary to line up the coordinates, as origin is at top left
         if borderAmount is None:
-            borderAmount = imgMiddle.shape[1]
-        return cv.copyMakeBorder(imgMiddle,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
+            borderAmount = img.shape[1]
+        return cv.copyMakeBorder(img,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
 
     def _cylindricalWarp(self, img, K):
         """This function returns the cylindrical warp for a given image and intrinsics matrix K"""
@@ -259,6 +259,7 @@ class CameraSystem:
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in goodMatches ]).reshape(-1,1,2)
             M, mask = cv.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)
             matchesMask = mask.ravel().tolist()
+            print(f"Matches found - {len(goodMatches)}")
         else:
             print(f"Not enough matches are found - {len(goodMatches)}/{MIN_MATCH_COUNT}")
             matchesMask = None
@@ -270,9 +271,9 @@ class CameraSystem:
         """
         Takes in two images, warps the toBeWarped onto main
         """
-        kp, des = cam._findKPandDesMultiple([imgToBeWarped, imgMain])
-        goodMatches = cam._matchDescriptors(des[0], des[1])
-        H, matchesMask = cam._findHomographyFromMatched(goodMatches, kp[0], kp[1])
+        kp, des = self._findKPandDesMultiple([imgToBeWarped, imgMain])
+        goodMatches = self._matchDescriptors(des[0], des[1])
+        H, matchesMask = self._findHomographyFromMatched(goodMatches, kp[0], kp[1])
 
         return H
 
@@ -285,15 +286,15 @@ class CameraSystem:
         """
 
         # find keypoints for all images
-        kp, des = cam._findKPandDesMultiple([imgLeft, imgMain, imgRight])
+        kp, des = self._findKPandDesMultiple([imgLeft, imgMain, imgRight])
 
         # match keypoints for left and middle, as well as middle and right
-        goodMatchesLeft = cam.matchDescriptors(des[0], des[1]) # the first arg is the image that is being warped, so left here
-        goodMatchesRight = cam.matchDescriptors(des[2], des[1]) # and right img here
+        goodMatchesLeft = self._matchDescriptors(des[0], des[1]) # the first arg is the image that is being warped, so left here
+        goodMatchesRight = self._matchDescriptors(des[2], des[1]) # and right img here
 
         # find the homography matrices to align the keypoints
-        Hl, _ = cam._findHomographyFromMatched(goodMatchesLeft, kp[0], kp[1])
-        Hr, _ = cam._findHomographyFromMatched(goodMatchesRight, kp[2], kp[1])
+        Hl, _ = self._findHomographyFromMatched(goodMatchesLeft, kp[0], kp[1])
+        Hr, _ = self._findHomographyFromMatched(goodMatchesRight, kp[2], kp[1])
 
         return Hl, Hr
 
