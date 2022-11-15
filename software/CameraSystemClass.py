@@ -178,6 +178,8 @@ class CameraSystem:
         for frame in frames:
             h, w = frame.shape[:2]
             K = np.array([[warpAmount,0,w/2],[0,warpAmount,h/2],[0,0,1]]) # mock intrinsics (normally from camera calibration?)
+            
+            # warp frame based on matrix K
             warpedFrames.append(self._cylindricalWarp(frame, K))
 
             if incrementAmount:
@@ -205,6 +207,17 @@ class CameraSystem:
         overlapped = cv.addWeighted(imgL, 1, imgRightMasked, 1, 0, dtype=cv.CV_8U)
 
         return overlapped
+
+    # cuts given image into left and right halves
+    def cutImgVert(self, img):
+        """
+        Cuts img into left and right halves,
+        returns leftHalf, rightHalf
+
+        """
+        imgWHalf = int(img.shape[1]/2)
+
+        return img[:, :imgWHalf], img[:, imgWHalf:]
 
 # HOMOGRAPHY functions
 
