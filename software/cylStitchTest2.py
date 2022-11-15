@@ -3,89 +3,6 @@ import sys
 import numpy as np
 from CameraSystemClass import CameraSystem, showTwoImgs
 
-def borderMiddleImg(imgMiddle, borderAmount = None):
-    # add border to left and right of middle so the left image has space to appear 
-        # - this is necessary to line up the coordinates, as origin is at top left
-    if borderAmount is None:
-        borderAmount = imgMiddle.shape[1]
-    return cv.copyMakeBorder(imgMain,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
-
-def calcHomo(imgMain, imgToBeWarped):
-    kp, des = cam._findKPandDesMultiple([imgToBeWarped, imgMain])
-    goodMatches = cam.matchDescriptors(des[0], des[1])
-    H, matchesMask = cam.findHomographyFromMatched(goodMatches, kp[0], kp[1])
-
-    return H
-
-def stitchSingle(imgMain, imgRight, H):
-    h,w = imgMain.shape[:2]
-
-    # warp right
-    dstR = cv.warpPerspective(imgRight,H,(w, h))
-
-    # get inverse mask of main
-    imgMainGray = cv.cvtColor(imgMain,cv.COLOR_BGR2GRAY)
-    ret, mainMaskInv = cv.threshold(imgMainGray, 0, 255, cv.THRESH_BINARY_INV)
-
-    # apply mask to warped image (mask needs to be same size as input img)
-    dstRMasked = cv.bitwise_and(dstR, dstR, mask=mainMaskInv)
-
-    # add main in
-    return cv.add(dstRMasked, imgMain)
-
-
-
-def calcHomographyThree(imgLeft, imgMain, imgRight):
-    """
-    imgMiddle needs to have a border before calling this, use borderMiddleImg function
-
-    returns Hl, Hr
-    """
-
-    # find keypoints for all images
-    kp, des = cam._findKPandDesMultiple([imgLeft, imgMain, imgRight])
-
-    # match keypoints for left and middle, as well as middle and right
-    goodMatchesLeft = cam.matchDescriptors(des[0], des[1]) # the first arg is the image that is being warped, so left here
-    goodMatchesRight = cam.matchDescriptors(des[2], des[1]) # and right img here
-
-    # find the homography matrices to align the keypoints
-    Hl, _ = cam.findHomographyFromMatched(goodMatchesLeft, kp[0], kp[1])
-    Hr, _ = cam.findHomographyFromMatched(goodMatchesRight, kp[2], kp[1])
-
-    return Hl, Hr
-
-def stitchThree(imgLeft, imgMiddle, imgRight, Hl, Hr):
-    """
-    imgMiddle needs to have a border before calling this, use borderMiddleImg function
-
-    returns a pano of all three images
-    """
-    h,w = imgMiddle.shape[:2]
-
-    # warp left and right images
-    dstR = cv.warpPerspective(imgRight,Hr,(w, h))
-    dstL = cv.warpPerspective(imgLeft,Hl,(w, h))
-
-    # additional step - erase the opposite edge
-    # - if the warpPerspective goes to far, it could wrap around to the other side
-    # - this would cause the right and left image to overlap in the edge region 
-    #   -> makes it bright when adding together
-    # - not an issue if cylindrical warp, as it all fits without wrap around
-
-    # add the warped images together
-    rAndL = cv.add(dstR, dstL)
-
-    # get inverse mask of middle
-    imgMiddleGray = cv.cvtColor(imgMiddle,cv.COLOR_BGR2GRAY)
-    ret, middleMaskInv = cv.threshold(imgMiddleGray, 0, 255, cv.THRESH_BINARY_INV)
-
-    # apply mask to l/r image
-    rAndLMasked = cv.bitwise_and(rAndL, rAndL, mask=middleMaskInv)
-
-    # add middle in
-    return cv.add(rAndLMasked, imgMiddle)
-
 def cropImageOLD(img):
     src_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     ret, imgMask = cv.threshold(src_gray, 0, 255, cv.THRESH_BINARY)
@@ -122,6 +39,7 @@ def cropImageOLD(img):
 imageIndex = [2,3,4,5,0,1]
 cam = CameraSystem([],compressCameraFeed=False)
 frames = cam.readFramesFromFiles([str(n) + ".png" for n in imageIndex],"../images/lab_5/capture")
+frames = [cv.resize(frame) for frame in frames]
 frames = cam.cylWarpFrames(frames, 197)
 
 h,w = frames[0].shape[:2]
@@ -129,9 +47,9 @@ imgLeft = frames[0]
 imgMain = frames[1]
 imgRight = frames[2]
 
-imgMiddleBorder = borderMiddleImg(imgMain)
-Hl, Hr = calcHomographyThree(imgLeft, imgMiddleBorder, imgRight)
-pano = stitchThree(imgLeft, imgMiddleBorder, imgRight, Hl, Hr)
+imgMiddleBorder = cam.borderImg(imgMain)
+Hl, Hr = cam.calcHomographyThree(imgLeft, imgMiddleBorder, imgRight)
+pano = cam.stitchThree(imgLeft, imgMiddleBorder, imgRight, Hl, Hr)
 
 cv.imshow("pano", pano)
 
@@ -144,9 +62,18 @@ imgLeft = frames[3]
 imgMain = frames[4]
 imgRight = frames[5]
 
-imgMiddleBorder = borderMiddleImg(imgMain)
-Hl, Hr = calcHomographyThree(imgLeft, imgMiddleBorder, imgRight)
-pano2 = stitchThree(imgLeft, imgMiddleBorder, imgRight, Hl, Hr)
+imgMiddleBorder = cam.borderImg(imgMain)
+Hl, Hr = cam.calcHomographyThree(imgLeft, imgMiddleBorder, imgRight)
+pano2 = cam.stitchThree(imgLeft, imgMiddleBorder, imgRight, Hl, Hr)
+
+pano2Cropped = cam.cropToBlob(pano2)
+cv.imshow("pano2Cropped", pano2Cropped)
+cv.waitKey(0)
+
+cv.destroyAllWindows()
+
+exit()
+
 
 # pano2 = np.roll(pano2, -200, axis=1)
 # shiftAmount = 300
