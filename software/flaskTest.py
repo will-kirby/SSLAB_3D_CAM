@@ -36,6 +36,9 @@ def recalibrateCams():
    frames = cam.captureCameraImages()
    if Cylindrical:
          frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
+         frame0L, frames[0] = cam.cutImgVert(frames[0])
+         frames.append(frame0L)
+
          cam.calcHomographyWarped(frames, saveHomo = True, fileName=f"Cylindrical{numCams}.npy")
    else:
 
@@ -89,6 +92,9 @@ def get_frame():
       # stitch with cylindrical warp
       elif Cylindrical:
          frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
+         frame0L, frames[0] = cam.cutImgVert(frames[0])
+         frames.append(frame0L)
+         
          im = cam.stitchWarped(frames, homoList)
 
          # crop image to remove black space (if there is excess)
