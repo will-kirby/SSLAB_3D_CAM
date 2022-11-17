@@ -10,8 +10,12 @@ numCams = 3
 led_pin=12
 noStitchJustStack = False
 Cylindrical = True
-cylWarpInitial = 200
-cylWarpIncrement = 5
+cylWarpInitial = 196
+cylWarpIncrement = 4
+cutThenAppendFirst = True
+
+# change this to True on actual thing?
+recalibrateOnInit = False
 global cam
 
 GPIO.setmode(GPIO.BOARD) 
@@ -35,9 +39,7 @@ def recalibrateCams():
    print("Recalibrating cams")
    frames = cam.captureCameraImages()
    if Cylindrical:
-         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
-         frame0L, frames[0] = cam.cutImgVert(frames[0])
-         frames.append(frame0L)
+         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement, cutFirstThenAppend=cutThenAppendFirst)
 
          cam.calcHomographyWarped(frames, saveHomo = True, fileName=f"Cylindrical{numCams}.npy")
    else:
@@ -91,9 +93,7 @@ def get_frame():
   
       # stitch with cylindrical warp
       elif Cylindrical:
-         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
-         frame0L, frames[0] = cam.cutImgVert(frames[0])
-         frames.append(frame0L)
+         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement, cutFirstThenAppend=cutThenAppendFirst)
          
          im = cam.stitchWarped(frames, homoList)
 
