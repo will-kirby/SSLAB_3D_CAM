@@ -171,9 +171,8 @@ class CameraSystem:
         # return cv.remap(img_rgba, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA, borderMode=cv.BORDER_TRANSPARENT)
         return cv.remap(img, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA) #, borderMode=cv.BORDER_TRANSPARENT)
 
-    def cylWarpFrames(self, frames, focalLength = 200, incrementAmount = None):
+    def cylWarpFrames(self, frames, focalLength = 200, incrementAmount = None, cutFirstThenAppend = False, borderOnFirstAndFourth=False):
         warpedFrames = []
-        # warpAmount = self.warpAmount
         warpAmount = focalLength
         for frame in frames:
             h, w = frame.shape[:2]
@@ -186,6 +185,15 @@ class CameraSystem:
                 warpAmount -= incrementAmount #5 # attempting to adjust warp amount to be more as images increase, as with 
 
         # return [self._cylindricalWarp(frame, K) for frame in frames]
+
+        if borderOnFirstAndFourth:
+            warpedFrames[1] = self.borderImg(warpedFrames[1])
+            warpedFrames[4] = self.borderImg(warpedFrames[4])            
+
+        # cut the first image in half, frame[0] is the right half, frame[-1] is the left half
+        if cutFirstThenAppend:
+            frame0L, warpedFrames[0] = self.cutImgVert(warpedFrames[0])
+            warpedFrames.append(frame0L)
         return warpedFrames
 
     def overlapImgs(self, imgLeft, imgRight):
@@ -282,7 +290,7 @@ class CameraSystem:
 
     def calcHomo(self, imgMain, imgToBeWarped):
         """
-        Takes in two images, warps the toBeWarped onto main
+        Takes in two images, warps the toBeWarped onto main (imgToBeWarped is the right image, main is the left)
         """
         kp, des = self._findKPandDesMultiple([imgToBeWarped, imgMain])
         goodMatches = self._matchDescriptors(des[0], des[1])
@@ -497,7 +505,7 @@ class CameraSystem:
 
         return stitch
 
-    # stitch triplex2, for normal (non-warped) images
+    # stitch triple*2, for normal (non-warped) images
     def homographyStitchTripleTwice(self, frames, Hl, Hr, Hl2, Hr2):
         im1 = self.tripleHomographyStitch(frames[0], frames[1], frames[2], Hl, Hr)
         im2 = self.tripleHomographyStitch(frames[3], frames[4], frames[5], Hl2, Hr2)
