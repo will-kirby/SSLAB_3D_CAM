@@ -36,10 +36,11 @@ def cropImageOLD(img):
 
 
 
-imageIndex = [2,3,4,5,0,1]
+# imageIndex = [2,3,4,5,0,1]
+imageIndex = range(6)
 cam = CameraSystem([],compressCameraFeed=False)
 frames = cam.readFramesFromFiles([str(n) + ".png" for n in imageIndex],"../images/lab_5/capture")
-frames = [cv.resize(frame) for frame in frames]
+# frames = [cv.resize(frame) for frame in frames]
 frames = cam.cylWarpFrames(frames, 197)
 
 h,w = frames[0].shape[:2]

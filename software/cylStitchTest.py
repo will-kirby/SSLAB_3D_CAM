@@ -16,8 +16,7 @@ print("Successfuly opended frames, init shape:",frames[0].shape)
 print("Warping frames")
 frames = cam.cylWarpFrames(frames, 196, 4) # 196, 4 for lab_5 best results
 
-frame0L, frame0R = cam.cutImgVert(frames[0])
-frames[0] = frame0R
+frame0L, frames[0] = cam.cutImgVert(frames[0])
 frames.append(frame0L)
 
 # cv.imshow("frame0New",frames[0])
@@ -57,7 +56,7 @@ cv.imshow("panoImageBIG",panoComb)
 
 cam.saveHomographyToFile(homoList, "cylindrical6.npy")
 
-# cv.imwrite("fullPanoLab_5.jpg",panoComb)
+cv.imwrite("fullPanoLab_5.jpg",panoComb)
 
 
 
