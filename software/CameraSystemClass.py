@@ -39,7 +39,7 @@ class CameraSystem:
 
 # Captures images
 
-    def captureCameraImages(self, cylWarp = False, newResizedDimensions = None, interpolationType = cv.INTER_LINEAR):
+    def captureCameraImages(self, newResizedDimensions = None, interpolationType = cv.INTER_LINEAR): #cylWarp = False
         # newDimensions is a tuple - (newheight, newWidth)
         # interpolationType is only used if newDimensions is set
         # returns None if error, camera frames otherwise
@@ -56,8 +56,10 @@ class CameraSystem:
 
             frames.append(frame)
 
-        if cylWarp:
-            frames = self.cylWarpFrames(frames)
+        # don't use this, too many options 
+        #   (would need to pass in focal length, increment amount, if cut then append, border middles)
+        # if cylWarp:
+        #     frames = self.cylWarpFrames(frames)
     
         return frames
 
@@ -320,7 +322,7 @@ class CameraSystem:
         return Hl, Hr
 
     # homography for left to right stitching
-    def calcHomographyWarped(self, frames, saveHomo = True, fileName="fallbackHomography.npy"):
+    def calcHomographyWarped(self, frames, saveHomo = True, fileName="homographyLtoR.npy"):
         """ 
         Pass in cyl-warped frames. Ends up stitching them together to find keypoints and calculate homography matrices
         returns a list of the homography matrices
@@ -351,6 +353,41 @@ class CameraSystem:
 
         if saveHomo:
             print(f"Saving homo Hleft, Hright to file {fileName}")
+            self.saveHomographyToFile(homoList,fileName)
+
+        return homoList
+
+    def calcHomographyWarped2Origin(self, frames, saveHomo = True, fileName="homography2origin.npy"):
+        """
+        Takes in 7 frames, need to be pre-bordered and with the first frame split and appended to end (to make 7 frames)
+        use cylWarpFrames to add this border and append to end
+
+        """
+        if len(frames) != 7:
+            print("Error, warp with 2 origin currently only works with 6 images, the first frame cut and then appended (7 frames total)")
+            raise Exception
+
+        HlL, HrL = self.calcHomographyThree(frames[0], frames[1], frames[2]) # the left half homography mats
+        HlR, HrR = self.calcHomographyThree(frames[3], frames[4], frames[5]) # the right half
+
+        panoL = self.stitchThree(frames[0], frames[1], frames[2], HlL, HrL)
+        panoR = self.stitchThree(frames[3], frames[4], frames[5], HlR, HrR)
+
+        HExtra = self.calcHomo(panoR, frames[-1])
+        # panoR = self.stitchSingle(panoR, frames[-1], HExtra)
+        HFinal = self.calcHomo(panoL, panoR)
+
+        homoList = [HlL, HrL, HlR, HrR, HExtra, HFinal]
+
+        # check if any stitch failed
+        for i, h in enumerate(homoList):
+            if h is None:
+                print(f"Error finding homography {i} for 2 origin stitching")
+                return None
+
+        # save to file
+        if saveHomo:
+            print(f"Saving homograhies to file {fileName}")
             self.saveHomographyToFile(homoList,fileName)
 
         return homoList
@@ -479,6 +516,23 @@ class CameraSystem:
                 stitchedImage = self._stitchWarpedSegment(stitchedImage, frames[i], homographyList[i-1])
 
         return stitchedImage
+
+    def stitchWarped2Origin(self, frames, homographyList):
+        """
+            Give this 7 frames (6 cameras, border middles and cut and append 1st)
+            homographyList from calcHomographyWarped2Origin
+
+            returns a cropped and switched image
+                - image dimensions may change depending on crop -> this may be an issue
+        """
+        HlL, HrL, HlR, HrR, HExtra, HFinal = homographyList
+        panoL = self.stitchThree(frames[0], frames[1], frames[2], HlL, HrL)
+        panoR = self.stitchThree(frames[3], frames[4], frames[5], HlR, HrR)
+
+        panoR = self.stitchSingle(panoR, frames[-1], HExtra)
+
+        pano = self.stitchSingle(panoL, panoR, HFinal)
+        return self.cropToBlob(pano)
 
     # stitch single, for normal (non-warped) images
     def homographyStitch(self, img1, img2, H):
