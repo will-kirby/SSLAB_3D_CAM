@@ -151,6 +151,6 @@ if __name__ == '__main__':
       #app.run(host='localhost',port=5000, debug=False, threaded=True)
    except Exception as e:
      print(e)
-     print("Excpetion raised. Exiting...")
+     print("Exception raised. Exiting...")
      GPIO.output(led_pin, GPIO.LOW)
      sys.exit(-1)
