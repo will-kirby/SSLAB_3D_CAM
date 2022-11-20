@@ -11,8 +11,6 @@ labNum=5
 cam = CameraSystem([],compressCameraFeed=False)
 frames = cam.readFramesFromFiles([str(n) + ".png" for n in imageIndex],f"../images/lab_{labNum}/capture")
 frames = cam.cylWarpFrames(frames, focalLength=focalLength, cutFirstThenAppend=True, borderOnFirstAndFourth=True)
-# cv.imwrite("CutFirstImage.jpg",np.hstack((frames[0],frames[-1], frames[-1], frames[0])))
-# cv.imwrite("BorderedMiddleImages.jpg",np.hstack((frames[1],frames[4])))
 
 HlL, HrL = cam.calcHomographyThree(frames[0], frames[1], frames[2])
 HlR, HrR = cam.calcHomographyThree(frames[3], frames[4], frames[5])
@@ -24,14 +22,15 @@ HExtra = cam.calcHomo(panoR, frames[-1])
 
 panoR = cam.stitchSingle(panoR, frames[-1], HExtra)
 
-cv.imwrite(f"testImages/TestPanoLeft{focalLength}_Lab{labNum}.jpg",panoL)
-cv.imwrite(f"testImages/TestPanoRight{focalLength}_Lab{labNum}.jpg",panoR)
+# cv.imwrite(f"testImages/TestPanoLeft{focalLength}_Lab{labNum}.jpg",panoL)
+# cv.imwrite(f"testImages/TestPanoRight{focalLength}_Lab{labNum}.jpg",panoR)
 
 HFinal = cam.calcHomo(panoL, panoR)
 
 pano = cam.stitchSingle(panoL, panoR, HFinal)
 pano = cam.cropToBlob(pano)
-cv.imwrite(f"testImages/TestPanoAll{focalLength}_Lab{labNum}.jpg",pano)
+pano = cv.boxFilter(pano, 3, (3,1))
+cv.imwrite(f"testImages/TestPanoAll{focalLength}_Lab{labNum}_testBlur.jpg",pano)
 
 
 
