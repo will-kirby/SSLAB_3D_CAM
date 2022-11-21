@@ -1,0 +1,12 @@
+[Unit]
+After=run_on_boot.service
+Requires=run_on_boot.service
+PartOf=run_on_boot.service
+Description="Light up LED when flask server ready"
+[Service]
+WorkingDirectory=/home/lab/SSLAB_3D_CAM/software
+ExecStart=/usr/bin/python3 /home/lab/SSLAB_3D_CAM/software/PollLED.py
+User=lab
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target

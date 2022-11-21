@@ -1,0 +1,52 @@
+<!-- <form action="http://localhost:5000" method="post">
+    <button name="toggle" value="0">Toggle</button>
+</form> -->
+
+<script>
+    function recalibrateStream(){
+        console.log("Recal called")
+        // fetch("http://192.168.55.1:5000/vid", {
+        fetch("http://localhost:5000/vid", {
+
+            method: "post",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'no-cors',
+            body: JSON.stringify({})
+            })
+            .then( (response) => { 
+                console.log("Good response")
+                refreshStream()
+            }).catch(res => {
+                console.log("Error occured in POST recalibrate",res)
+            })
+    }
+    function refreshStream(){
+        // console.log("Refresh called")
+        // document.getElementById('imageHolder').innerHTML = ''
+        // document.getElementById('imageHolder').innerHTML = '<img src="http://localhost:5000/vid" />'
+        location.reload()
+    }
+</script>
+
+<button name="refresh" onclick="refreshStream()">Refresh</button>
+<button name="recalibrate" onclick="recalibrateStream()">Recalibrate</button>
+<a href="localhost:5000/panVid">Go to Panellum Example</a>
+
+<div id="imageHolder">
+    <!-- <img src="http://192.168.55.1:5000/vid" /> -->
+    <!-- <video>
+        <img src="http://localhost:5000/vid" />
+    </video> -->
+    <img src="http://localhost:5000/vid" />
+    <!-- <video>
+        <source src="http://localhost:5000/vid" type="video/mjpeg"/>
+    </video> -->
+
+    <!-- <iframe width="640" height="480" src="http://localhost:5000/vid"></iframe> -->
+
+    <!-- <iframe width="885" height="498" src="https://www.youtube.com/embed/iLHuL3r-Gg0?autoplay=1" title="The Greatest BIRDS COLLECTION HD 4K ULTRA - Relaxing Music And Nature 4K TV" frameborder="0" allow="autoplay; picture-in-picture" allowfullscreen></iframe> -->
+
+</div>

@@ -1,0 +1,53 @@
+/usr/lib/python3/dist-packages/Jetson/GPIO/gpio.py:386: RuntimeWarning: This channel is already in use, continuing anyway. Use GPIO.setwarnings(False) to disable warnings
+  RuntimeWarning)
+Starting flask
+Constructing camera system
+Init 3 cameras
+Done init, calling recal
+Recalibrating cams
+Saving homo Hleft, Hright to file Cylindrical3.npy
+ * Serving Flask app 'flaskTest' (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on http://192.168.55.1:5000/ (Press CTRL+C to quit)
+Grabbing cam page
+192.168.55.100 - - [08/Nov/2022 13:13:30] "GET / HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:13:30] "GET /vid HTTP/1.1" 200 -
+Recalibrating cams
+Saving homo Hleft, Hright to file Cylindrical3.npy
+192.168.55.100 - - [08/Nov/2022 13:13:33] "POST /vid HTTP/1.1" 200 -
+Grabbing cam page
+192.168.55.100 - - [08/Nov/2022 13:13:33] "GET / HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:13:33] "GET /vid HTTP/1.1" 200 -
+Recalibrating cams
+Saving homo Hleft, Hright to file Cylindrical3.npy
+192.168.55.100 - - [08/Nov/2022 13:13:35] "POST /vid HTTP/1.1" 200 -
+Grabbing cam page
+192.168.55.100 - - [08/Nov/2022 13:13:35] "GET / HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:13:36] "GET /vid HTTP/1.1" 200 -
+Recalibrating cams
+Saving homo Hleft, Hright to file Cylindrical3.npy
+192.168.55.100 - - [08/Nov/2022 13:13:38] "POST /vid HTTP/1.1" 200 -
+Grabbing cam page
+192.168.55.100 - - [08/Nov/2022 13:13:38] "GET / HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:13:39] "GET /vid HTTP/1.1" 200 -
+Grabbing panellum page
+192.168.55.100 - - [08/Nov/2022 13:13:43] "GET /panVid HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:13:43] "GET /vid HTTP/1.1" 200 -
+Grabbing cam page
+192.168.55.100 - - [08/Nov/2022 13:15:18] "GET / HTTP/1.1" 304 -
+Opening cam matrix
+Opening cylindrical homography matrices for 3 cameras
+192.168.55.100 - - [08/Nov/2022 13:15:18] "GET /vid HTTP/1.1" 200 -

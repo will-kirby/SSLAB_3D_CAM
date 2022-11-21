@@ -1,4 +1,5 @@
 import sys
+import select
 import cv2 as cv
 import argparse
 
@@ -14,7 +15,7 @@ camera = cv.VideoCapture(f'/dev/camera{camNum}')
 if not camera.isOpened():
     print(f"Cannot open camera {camNum}")
     exit()
-
+capture_count = 0
 while True:
     ret, frame = camera.read()
     # if frame is read correctly ret is True
@@ -24,9 +25,17 @@ while True:
 
     cv.imshow('raw camera ' + str(camNum),frame)
 
-    if cv.waitKey(1) == ord('q'):
-        break
+ 
+    if cv.waitKey(1) == ord('c'):
+        cv.imwrite(f'calibration/camera{camNum}_capture{capture_count}.png', frame)
+        print(f'camera{camNum}_capture{capture_count}.png saved')
+        capture_count += 1
 
+    if cv.waitKey(2) == ord('q'):
+        break
+        
+    if(select.select([sys.stdin,],[],[],0)[0] and sys.stdin.read(1) == 'q'): 
+        break
 camera.release()
 
 cv.destroyAllWindows()
