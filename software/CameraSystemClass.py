@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 class CameraSystem:
     cameras = []
@@ -147,7 +148,7 @@ class CameraSystem:
 
     def _cylindricalWarp(self, img, K):
         """This function returns the cylindrical warp for a given image and intrinsics matrix K"""
-        
+        start = time.time()
         h_,w_ = img.shape[:2]
 
         # pixel coordinates
@@ -166,12 +167,19 @@ class CameraSystem:
         # make sure warp coords only within image bounds
         B[(B[:,0] < 0) | (B[:,0] >= w_) | (B[:,1] < 0) | (B[:,1] >= h_)] = -1
         B = B.reshape(h_,w_,-1)
+
+        print("Cylindrical coordinates calculations: "+str(time.time() - start))
         # img_rgba = cv.cvtColor(img,cv.COLOR_BGR2BGRA) # for transparent borders...
 
         # warp the image according to cylindrical coords
-        
-        # return cv.remap(img_rgba, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA, borderMode=cv.BORDER_TRANSPARENT)
-        return cv.remap(img, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA) #, borderMode=cv.BORDER_TRANSPARENT)
+        start = time.time()
+
+        warpedImage = cv.remap(img, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA)
+
+        print("Warped calculations: "+str(time.time() - start))
+
+        # return cv.remap(img_rgba, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA) #, borderMode=cv.BORDER_TRANSPARENT)
+        return warpedImage
 
     def cylWarpFrames(self, frames, focalLength = 200, incrementAmount = None, cutFirstThenAppend = False, borderOnFirstAndFourth=False):
         warpedFrames = []
@@ -214,7 +222,9 @@ class CameraSystem:
         maskRight = np.dstack((maskRight, maskRight, maskRight)) # make one for each pixcel channel
         imgRightMasked = imgRight * maskRight
         
-        overlapped = cv.add(imgL, imgRightMasked)
+        overlapped = cv.addWeighted(imgL, 1, imgRightMasked, 1, 0, dtype=cv.CV_8U)
+
+        return overlapped
 
         return overlapped
 

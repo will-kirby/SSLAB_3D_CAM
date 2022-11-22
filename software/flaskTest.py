@@ -6,13 +6,13 @@ from CameraSystemClass import CameraSystem
 import Jetson.GPIO as GPIO
 import signal
 
-numCams = 3
+numCams = 4
 led_pin=12
 noStitchJustStack = False
 Cylindrical = True
 cylWarpInitial = 196
 cylWarpIncrement = 4
-cutThenAppendFirst = True
+cutThenAppendFirst = False
 
 # change this to True on actual thing?
 recalibrateOnInit = False

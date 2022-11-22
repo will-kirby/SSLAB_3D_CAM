@@ -2,52 +2,23 @@
   RuntimeWarning)
 Starting flask
 Constructing camera system
-Init 3 cameras
-Done init, calling recal
-Recalibrating cams
-Saving homo Hleft, Hright to file Cylindrical3.npy
- * Serving Flask app 'flaskTest' (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
- * Debug mode: off
- * Running on http://192.168.55.1:5000/ (Press CTRL+C to quit)
-Grabbing cam page
-192.168.55.100 - - [08/Nov/2022 13:13:30] "GET / HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:13:30] "GET /vid HTTP/1.1" 200 -
-Recalibrating cams
-Saving homo Hleft, Hright to file Cylindrical3.npy
-192.168.55.100 - - [08/Nov/2022 13:13:33] "POST /vid HTTP/1.1" 200 -
-Grabbing cam page
-192.168.55.100 - - [08/Nov/2022 13:13:33] "GET / HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:13:33] "GET /vid HTTP/1.1" 200 -
-Recalibrating cams
-Saving homo Hleft, Hright to file Cylindrical3.npy
-192.168.55.100 - - [08/Nov/2022 13:13:35] "POST /vid HTTP/1.1" 200 -
-Grabbing cam page
-192.168.55.100 - - [08/Nov/2022 13:13:35] "GET / HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:13:36] "GET /vid HTTP/1.1" 200 -
-Recalibrating cams
-Saving homo Hleft, Hright to file Cylindrical3.npy
-192.168.55.100 - - [08/Nov/2022 13:13:38] "POST /vid HTTP/1.1" 200 -
-Grabbing cam page
-192.168.55.100 - - [08/Nov/2022 13:13:38] "GET / HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:13:39] "GET /vid HTTP/1.1" 200 -
-Grabbing panellum page
-192.168.55.100 - - [08/Nov/2022 13:13:43] "GET /panVid HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:13:43] "GET /vid HTTP/1.1" 200 -
-Grabbing cam page
-192.168.55.100 - - [08/Nov/2022 13:15:18] "GET / HTTP/1.1" 304 -
-Opening cam matrix
-Opening cylindrical homography matrices for 3 cameras
-192.168.55.100 - - [08/Nov/2022 13:15:18] "GET /vid HTTP/1.1" 200 -
+Init 6 cameras
+[ WARN:0@1.988] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (2402) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
+[ WARN:0@1.989] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (1356) open OpenCV | GStreamer warning: unable to start pipeline
+[ WARN:0@1.989] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+[ WARN:0@2.770] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (2402) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
+[ WARN:0@2.771] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (1356) open OpenCV | GStreamer warning: unable to start pipeline
+[ WARN:0@2.771] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+[ WARN:0@3.449] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (2402) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
+[ WARN:0@3.451] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (1356) open OpenCV | GStreamer warning: unable to start pipeline
+[ WARN:0@3.451] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+[ WARN:0@4.198] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (2402) handleMessage OpenCV | GStreamer warning: Embedded video playback halted; module source reported: Could not read from resource.
+[ WARN:0@4.200] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (1356) open OpenCV | GStreamer warning: unable to start pipeline
+[ WARN:0@4.200] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+
+(python3:4530): GStreamer-CRITICAL **: 11:13:09.246: gst_element_make_from_uri: assertion 'gst_uri_is_valid (uri)' failed
+[ WARN:0@4.865] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (1127) open OpenCV | GStreamer warning: Error opening bin: no source element for URI "/dev/camera4"
+[ WARN:0@4.865] global /home/lab/opencv/modules/videoio/src/cap_gstreamer.cpp (862) isPipelinePlaying OpenCV | GStreamer warning: GStreamer: pipeline have not been created
+Cannot open camera 4
+Unable to open camera 4
+Exception raised. Exiting...
