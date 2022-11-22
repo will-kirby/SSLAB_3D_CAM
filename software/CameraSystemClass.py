@@ -214,7 +214,7 @@ class CameraSystem:
         maskRight = np.dstack((maskRight, maskRight, maskRight)) # make one for each pixcel channel
         imgRightMasked = imgRight * maskRight
         
-        overlapped = cv.addWeighted(imgL, 1, imgRightMasked, 1, 0, dtype=cv.CV_8U)
+        overlapped = cv.add(imgL, imgRightMasked)
 
         return overlapped
 
