@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from CameraSystemClass import CameraSystem
+import time
 
 print("Constructing start")
 cam = CameraSystem(range(numCams), useLinuxCam=True)
@@ -8,7 +9,9 @@ cam = CameraSystem(range(numCams), useLinuxCam=True)
 print("taking images")
 frames = cam.captureCameraImages()
 
-for i, frame in enumerate(frames):
-    cv.imwrite(f'imagesForPano/image{i}.jpg', frame)
+randNum = int(time.time()/10000)
 
-print("Done, wrote to imagesForPano/image[x]")
+for i, frame in enumerate(frames):
+    cv.imwrite(f'../images/labPaper/{randNum}/image{i}.jpg', frame)
+
+print(f"Done, wrote to ../images/labPaper/{randNum}/image[x]")
