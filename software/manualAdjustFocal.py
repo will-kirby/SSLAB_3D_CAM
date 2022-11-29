@@ -63,7 +63,7 @@ def fullUpdate():
 
 def focalChangeUpdate(index, amount):
     focusList[cameraSet[cameraSetIndex][index]] += amount
-    print(f"Camera Index {cameraSet[cameraSetIndex][index]} increased to {focusList[cameraSet[cameraSetIndex][index]]}")
+    print(f"Camera Index {cameraSet[cameraSetIndex][index]} {'increased' if amount == 1 else 'decreased'} to {focusList[cameraSet[cameraSetIndex][index]]}")
 
     fullUpdate()
 
