@@ -28,8 +28,8 @@ class CameraSystem:
 
             if compressCameraFeed:
                 camera.set(cv.CAP_PROP_FPS, 15)
-                camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)
-                camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)
+                camera.set(cv.CAP_PROP_FRAME_WIDTH, 320)#320
+                camera.set(cv.CAP_PROP_FRAME_HEIGHT, 240)#240
                 camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc('M', 'J', 'P', 'G')) # what does this do?
 
             self.cameras.append(camera)
@@ -82,7 +82,7 @@ class CameraSystem:
         try:
             matrix = list(np.load(fileName))
         except:
-            print(f"Unable to open {fileName}, falling back on backup")
+            #print(f"Unable to open {fileName}, falling back on backup")
             matrix = list(np.load(backupFile))
 
         return matrix
@@ -146,11 +146,10 @@ class CameraSystem:
             borderAmount = img.shape[1]
         return cv.copyMakeBorder(img,0,0,borderAmount,borderAmount,cv.BORDER_CONSTANT)
 
-    def _cylindricalWarp(self, img, K):
+    def _cylindricalWarpCalc(self,K, h_, w_): #_cylindricalWarp(self, img, K):
         """This function returns the cylindrical warp for a given image and intrinsics matrix K"""
-        start = time.time()
-        h_,w_ = img.shape[:2]
 
+        #start = time.time()
         # pixel coordinates
         y_i, x_i = np.indices((h_,w_)) # does [[0,0,0...],[1,1,1...],[n-1,n-1,n-1...] then [0,1,2,3...n-1] * n
         X = np.stack([x_i,y_i,np.ones_like(x_i)],axis=-1).reshape(h_*w_,3) # to homog -> stacks [0,1,2,3] vert , then [0,0,0,], then [1,1,1,1]
@@ -168,17 +167,51 @@ class CameraSystem:
         B[(B[:,0] < 0) | (B[:,0] >= w_) | (B[:,1] < 0) | (B[:,1] >= h_)] = -1
         B = B.reshape(h_,w_,-1)
 
-        print("Cylindrical coordinates calculations: "+str(time.time() - start))
+        #print("Cylindrical coordinates calculations: "+str(time.time() - start))
+        return B 
+
+    def _cylindricalWarp(self, img, K):
+        """This function returns the cylindrical warp for a given image and intrinsics matrix K"""
+        #start = time.time()
+        h_,w_ = img.shape[:2]
+
+        #point = time.time()
+        # pixel coordinates
+        y_i, x_i = np.indices((h_,w_)) # does [[0,0,0...],[1,1,1...],[n-1,n-1,n-1...] then [0,1,2,3...n-1] * n
+        X = np.stack([x_i,y_i,np.ones_like(x_i)],axis=-1).reshape(h_*w_,3) # to homog -> stacks [0,1,2,3] vert , then [0,0,0,], then [1,1,1,1]
+        Kinv = np.linalg.inv(K)
+        X = Kinv.dot(X.T).T # normalized coords (K^-1 * X^T)^T'
+        #print("pixel coordinates: "+str(time.time() - point))
+
+        #point = time.time()
+        # calculate cylindrical coords (sin\theta, h, cos\theta)
+        A = np.stack([np.sin(X[:,0]),X[:,1],np.cos(X[:,0])],axis=-1).reshape(w_*h_,3)
+        B = K.dot(A.T).T # project back to image-pixels plane
+        #print("cylindrical coords: "+str(time.time() - point))
+
+        #point = time.time()
+        # back from homog coords
+        B = B[:,:-1] / B[:,[-1]]
+        #print("homogeneous coords: "+str(time.time() - point))
+        
+        #point = time.time()
+        # make sure warp coords only within image bounds
+        B[(B[:,0] < 0) | (B[:,0] >= w_) | (B[:,1] < 0) | (B[:,1] >= h_)] = -1
+        B = B.reshape(h_,w_,-1)
+        #print("image bounds: "+str(time.time() - point))
+
+        #print("Cylindrical coordinates npy calculations total: "+str(time.time() - start))
         # img_rgba = cv.cvtColor(img,cv.COLOR_BGR2BGRA) # for transparent borders...
 
         # warp the image according to cylindrical coords
-        start = time.time()
+    
+        #start = time.time()
 
         warpedImage = cv.remap(img, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA)
 
-        print("Warped calculations: "+str(time.time() - start))
-
-        # return cv.remap(img_rgba, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA) #, borderMode=cv.BORDER_TRANSPARENT)
+        #print("Warped calculations npy: "+str(time.time() - start))
+      
+        # return cv.remap(img_rgba, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA)#, borderMode=cv.BORDER_TRANSPARENT)
         return warpedImage
 
     def cylWarpFrames(self, frames, focalLength = 200, incrementAmount = None, cutFirstThenAppend = False, borderOnFirstAndFourth=False):
@@ -187,9 +220,8 @@ class CameraSystem:
         for frame in frames:
             h, w = frame.shape[:2]
             K = np.array([[warpAmount,0,w/2],[0,warpAmount,h/2],[0,0,1]]) # mock intrinsics (normally from camera calibration?)
-            
             # warp frame based on matrix K
-            warpedFrames.append(self._cylindricalWarp(frame, K))
+            warpedFrames.append(self._cylindricalWarp(frame,K))
 
             if incrementAmount:
                 warpAmount -= incrementAmount #5 # attempting to adjust warp amount to be more as images increase, as with 
@@ -206,6 +238,44 @@ class CameraSystem:
             warpedFrames.append(frame0L)
         return warpedFrames
 
+    def getCylCoords(self, frames, focalLength = 200, incrementAmount = None, cutFirstThenAppend=True, focalLengths = []):
+        coordMatrices = []
+        if(len(focalLengths) != len(frames)):
+           warpAmount = focalLength
+        for i,frame in enumerate(frames):
+            if (len(focalLengths) == len(frames)):
+               warpAmount = focalLengths[i]
+            h, w = frame.shape[:2]
+            K = np.array([[warpAmount,0,w/2],[0,warpAmount,h/2],[0,0,1]]) # mock intrinsics (normally from camera calibration?)
+            
+            # warp frame based on matrix K
+            coordMatrices.append(self._cylindricalWarpCalc(K, h, w))
+
+            if incrementAmount and (len(focalLengths) != len(frames)):
+                warpAmount -= incrementAmount #5 # attempting to adjust warp amount to be more as images increase, as with 
+
+        # return [self._cylindricalWarp(frame, K) for frame in frames]
+
+        return coordMatrices
+
+    def applyCylWarp(self, frames, coordMatrices, cutFirstThenAppend=False, borderOnFirstAndFourth=False):
+        warpedFrames = []
+        for i, frame in enumerate(frames):
+            B = coordMatrices[i]
+            warpedImage = cv.remap(frame, B[:,:,0].astype(np.float32), B[:,:,1].astype(np.float32), cv.INTER_AREA)
+            warpedFrames.append(warpedImage)
+
+        if borderOnFirstAndFourth:
+            warpedFrames[1] = self.borderImg(warpedFrames[1])
+            warpedFrames[4] = self.borderImg(warpedFrames[4])      
+        
+        if cutFirstThenAppend:
+            frame0L, warpedFrames[0] = self.cutImgVert(warpedFrames[0])
+            warpedFrames.append(frame0L)
+        
+       
+        return warpedFrames
+
     def overlapImgs(self, imgLeft, imgRight):
         """
         imgLeft is the smaller dimension image -> will get resized to larger
@@ -215,18 +285,25 @@ class CameraSystem:
 
         # resize imageLeft -> is there an opencv function to do this faster?
         # something like resize but to add a black border instead of change the whole thing
+        #start = time.time()
         imgL = np.zeros_like(imgRight)
         imgL[0:imgLeft.shape[0], 0:imgLeft.shape[1]] = imgLeft
+        #print(f"Create imgL: {time.time() - start}")
 
+        #point = time.time()
         maskRight = 1 - (np.sum(imgL,axis=-1) > 0) # true if value not (0,0,0)
         maskRight = np.dstack((maskRight, maskRight, maskRight)) # make one for each pixcel channel
         imgRightMasked = imgRight * maskRight
+        #print(f"Create maskRight: {time.time() - point}")
         
+        #point = time.time()
         overlapped = cv.addWeighted(imgL, 1, imgRightMasked, 1, 0, dtype=cv.CV_8U)
+        #print(f"Add Weighted: {time.time() - point}")
+
+        #print(f"Overlap total : {time.time() - start}")
 
         return overlapped
 
-        return overlapped
 
     # cuts given image into left and right halves
     def cutImgVert(self, img):
@@ -274,17 +351,18 @@ class CameraSystem:
 
     def _matchDescriptors(self, descriptors1, descriptors2):
         # Brute Force Matcher with default params
+        
         bf = cv.BFMatcher()
-        matches = bf.knnMatch(descriptors1,descriptors2,k=2)
-
+        matches = bf.knnMatch(descriptors1,descriptors2, k=2)
+        
         # Apply ratio test - using the 2 nearest neighbors, only add if the nearest is much better than the other neighbor
         goodMatches = []
         for m,n in matches:
-            if m.distance < 0.75*n.distance:
+            if m.distance < 0.75*n.distance: 
                 goodMatches.append(m)
         return goodMatches
 
-    def _findHomographyFromMatched(self, goodMatches, kp1, kp2, MIN_MATCH_COUNT=10):
+    def _findHomographyFromMatched(self, goodMatches, kp1, kp2, MIN_MATCH_COUNT=15):
         # MIN_MATCH_COUNT the minimum matches to start stitching
 
         if len(goodMatches)>=MIN_MATCH_COUNT:
@@ -376,15 +454,25 @@ class CameraSystem:
         if len(frames) != 7:
             print("Error, warp with 2 origin currently only works with 6 images, the first frame cut and then appended (7 frames total)")
             raise Exception
-
+        
+        HExtra = self.calcHomo(frames[-2], frames[-1])
+        #frames[-2] = self.stitchSingle(frames[-2], frames[-1], HExtra)
         HlL, HrL = self.calcHomographyThree(frames[0], frames[1], frames[2]) # the left half homography mats
         HlR, HrR = self.calcHomographyThree(frames[3], frames[4], frames[5]) # the right half
+        if (HlL is not None) and (HrL is not None):
+           panoL = self.stitchThree(frames[0], frames[1], frames[2], HlL, HrL)
+        else:
+           print("Could not stitch frames 0-2")
+           return None
+        
+        if (HlR is not None) and (HrR is not None):
+           panoR = self.stitchThree(frames[3], frames[4], frames[5], HlR, HrR)
+        else:
+           print("Could not stitch frames 3-5")
+           return None
 
-        panoL = self.stitchThree(frames[0], frames[1], frames[2], HlL, HrL)
-        panoR = self.stitchThree(frames[3], frames[4], frames[5], HlR, HrR)
-
-        HExtra = self.calcHomo(panoR, frames[-1])
-        # panoR = self.stitchSingle(panoR, frames[-1], HExtra)
+        #HExtra = self.calcHomo(panoR, frames[-1])
+        #panoR = self.stitchSingle(panoR, frames[-1], HExtra)
         HFinal = self.calcHomo(panoL, panoR)
 
         homoList = [HlL, HrL, HlR, HrR, HExtra, HFinal]
@@ -510,8 +598,18 @@ class CameraSystem:
 
     # The below two functions are used to stich left to right, adding segments on the right for pre-warped
     def _stitchWarpedSegment(self, mainPanoImg, newRightSegment, homographyMat):
+        start = time.time()
         dst = cv.warpPerspective(newRightSegment,homographyMat,(mainPanoImg.shape[1] + newRightSegment.shape[1], newRightSegment.shape[0])) # warp the first image
-        return self.overlapImgs(mainPanoImg, dst)
+        end = time.time()
+        #print(f"Warp perspective: {end - start}")
+        
+        point = time.time()
+        overlapped = self.overlapImgs(mainPanoImg, dst)
+        end = time.time()
+        #print(f"Overlap: {end - point}")
+        
+        #print(f"Total _stitchWarpedSegment: {end - start}")
+        return overlapped
 
     def stitchWarped(self, frames, homographyList):
         """
@@ -525,7 +623,7 @@ class CameraSystem:
             for i in range(1,len(frames)):
                 stitchedImage = self._stitchWarpedSegment(stitchedImage, frames[i], homographyList[i-1])
 
-        return stitchedImage
+        return self.cropToBlob(stitchedImage)
 
     def stitchWarped2Origin(self, frames, homographyList):
         """
@@ -536,13 +634,16 @@ class CameraSystem:
                 - image dimensions may change depending on crop -> this may be an issue
         """
         HlL, HrL, HlR, HrR, HExtra, HFinal = homographyList
+        frames[-2] = self.stitchSingle(frames[-2], frames[-1], HExtra)
+        #cv.imshow("End", frames[-2])
         panoL = self.stitchThree(frames[0], frames[1], frames[2], HlL, HrL)
+        #cv.imshow("panoL", panoL)
         panoR = self.stitchThree(frames[3], frames[4], frames[5], HlR, HrR)
-
-        panoR = self.stitchSingle(panoR, frames[-1], HExtra)
-
+        #cv.imshow("panoR 2", panoR)
         pano = self.stitchSingle(panoL, panoR, HFinal)
-        return self.cropToBlob(pano)
+        pano = self.cropToBlob(pano)
+        #cv.imshow("pano Final", pano)
+        return pano
 
     # stitch single, for normal (non-warped) images
     def homographyStitch(self, img1, img2, H):

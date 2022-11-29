@@ -6,17 +6,20 @@ from CameraSystemClass import CameraSystem
 import Jetson.GPIO as GPIO
 import signal
 
-numCams = 4
+numCams = 6
 led_pin=12
 noStitchJustStack = False
 Cylindrical = True
-cylWarpInitial = 196
-cylWarpIncrement = 4
-cutThenAppendFirst = False
+cylWarpInitial = 146
+cylWarpIncrement = 6
+focalLengths = [122, 138, 133, 128, 119, 116] #[108, 118, 130, 146, 132, 123]
+cutThenAppendFirst = True
+origin2Stitch = True # if false uses left to right
 
 # change this to True on actual thing?
 recalibrateOnInit = False
 global cam
+global cylMatrices
 
 GPIO.setmode(GPIO.BOARD) 
 GPIO.setup(led_pin, GPIO.OUT, initial=GPIO.LOW)
@@ -36,11 +39,17 @@ signal.signal(signal.SIGTERM,kill_signal_handler)
 
 def recalibrateCams():
    global cam
+   global cylMatrices
    print("Recalibrating cams")
    frames = cam.captureCameraImages()
    if Cylindrical:
-         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement, cutFirstThenAppend=cutThenAppendFirst)
-
+      if origin2Stitch:
+         frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend = True, borderOnFirstAndFourth=True)
+         cam.calcHomographyWarped2Origin(frames)
+      else:
+         #frames = cam.cylWarpFrames(frames, focalLength=focalLength,incrementAmount=cylWarpIncrement, cutFirstThenAppend=cutFirstThenAppend)
+         frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend=cutFirstThenAppend)
+         #frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement, cutFirstThenAppend=cutThenAppendFirst)
          cam.calcHomographyWarped(frames, saveHomo = True, fileName=f"Cylindrical{numCams}.npy")
    else:
 
@@ -60,13 +69,17 @@ def recalibrateCams():
 
 def get_frame():
    global cam
+   global cylMatrices    
    print("Opening cam matrix")
    
    if not noStitchJustStack:
    # open matrix outside of while loop to only do it once
       if Cylindrical:
             print(f"Opening cylindrical homography matrices for {numCams} cameras")
-            homoList = cam.openHomographyFile(f"Cylindrical{numCams}.npy", f"Cylindrical{numCams}_Backup.npy")
+            if origin2Stitch:
+                homoList = cam.openHomographyFile("homography2origin.npy", "homography2origin_Backup.npy")
+            else:
+                homoList = cam.openHomographyFile(f"Cylindrical{numCams}.npy", f"Cylindrical{numCams}_Backup.npy")
       else:
          if numCams==3:
             print("Opening 3 cam matrix")
@@ -84,22 +97,25 @@ def get_frame():
          
    while True:
       frames = cam.captureCameraImages()
-
+      if Cylindrical:
+            if origin2Stitch:
+                frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend = True, borderOnFirstAndFourth=True)
+            else:
+                frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend=cutFirstThenAppend)
+        
       # hstack frames, no stitching
       if noStitchJustStack:
-         if Cylindrical:
-            frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement)
          im = np.hstack(frames)
   
       # stitch with cylindrical warp
       elif Cylindrical:
-         frames = cam.cylWarpFrames(frames, cylWarpInitial, cylWarpIncrement, cutFirstThenAppend=cutThenAppendFirst)
-         
-         im = cam.stitchWarped(frames, homoList)
-
-         # crop image to remove black space (if there is excess)
-         im = cam.cropToBlob(im)
-
+            if origin2Stitch:
+                homoList = cam.openHomographyFile("homography2origin.npy", "homography2origin_Backup.npy")
+                im = cam.stitchWarped2Origin(frames, homoList)
+            else:
+                homoList = cam.openHomographyFile(f"Cylindrical{numCams}.npy", f"Cylindrical{numCams}_Backup.npy")
+                im = cam.stitchWarped(frames, homoList)
+            #im = cv.resize(im, dsize=(640,480), interpolation = cv.INTER_LINEAR)
       # stitch, no warping
       else:
          if numCams == 1:
@@ -116,9 +132,12 @@ def get_frame():
 
 def initialize():
    global cam
+   global cylMatrices
    print("Constructing camera system")
    print(f"Init {numCams} cameras")
    cam = CameraSystem(range(numCams), useLinuxCam=True)
+   frames = cam.captureCameraImages()
+   cylMatrices = cam.getCylCoords(frames, cylWarpInitial, cylWarpIncrement, focalLengths=focalLengths)
 
    print("Done init, calling recal")
    recalibrateCams()

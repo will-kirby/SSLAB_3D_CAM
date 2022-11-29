@@ -6,7 +6,7 @@ from CameraSystemClass import CameraSystem, showTwoImgs
 startIndex = 0
 endIndex = 2
 cam = CameraSystem([],compressCameraFeed=False)
-frames = cam.readFramesFromFiles([str(n) + ".png" for n in range(6)],"../images/lab_6/capture")
+frames = cam.readFramesFromFiles([str(n) + ".png" for n in range(6)],"../images/lab_5/capture")
 # frames2 = cam.readFramesFromFiles([str(n) + ".png" for n in [2,1,0]],"../images/lab_5/capture")
 # frames2 = [np.flip(frame,1) for frame in frames2]
 
