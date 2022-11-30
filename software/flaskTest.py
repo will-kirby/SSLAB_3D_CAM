@@ -153,7 +153,7 @@ def recalibrateCamerasRoute():
    return {'status' : 200}
 
 @app.route('/reset', methods=['POST'])
-def recalibrateCamerasRoute():
+def resetRecalibration():
    global cam
    try:
       homography = cam.openHomographyFile("homography2origin_Backup.npy")
@@ -163,7 +163,7 @@ def recalibrateCamerasRoute():
       return {'status' : 400}
 
 @app.route('/blur', methods=['POST'])
-def recalibrateCamerasRoute():
+def toggleBlur():
    global cam
    try:
       cam.blend = not cam.blend
