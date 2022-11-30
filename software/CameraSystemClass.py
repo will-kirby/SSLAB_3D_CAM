@@ -583,7 +583,8 @@ class CameraSystem:
         if self.blend:
             return self.BlendSeams([imgMain, dstR])
 
-         # get inverse mask of main
+        # get inverse mask of main
+        imgMainGray = cv.cvtColor(imgMiddle,cv.COLOR_BGR2GRAY)
         ret, mainMaskInv = cv.threshold(imgMainGray, 0, 255, cv.THRESH_BINARY_INV)
 
         # apply mask to warped image (mask needs to be same size as input img)
@@ -631,8 +632,6 @@ class CameraSystem:
 
         # add middle in
         return cv.add(rAndLMasked, imgMiddle)
-
-        return self.BlendSeams([imgMiddle,dstR,dstL])
 
 
     # The below two functions are used to stich left to right, adding segments on the right for pre-warped
