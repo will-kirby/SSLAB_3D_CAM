@@ -45,7 +45,9 @@ def recalibrateCams():
    if Cylindrical:
       if origin2Stitch:
          frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend = True, borderOnFirstAndFourth=True)
-         cam.calcHomographyWarped2Origin(frames)
+         ret = cam.calcHomographyWarped2Origin(frames)
+         if ret is None:
+            return {'status' : 400}
       else:
          #frames = cam.cylWarpFrames(frames, focalLength=focalLength,incrementAmount=cylWarpIncrement, cutFirstThenAppend=cutFirstThenAppend)
          frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend=cutFirstThenAppend)

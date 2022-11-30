@@ -581,7 +581,7 @@ class CameraSystem:
         dstR = cv.warpPerspective(imgRight,H,(w, h))
        
         if self.blend:
-            return self.BlendSeams([imgMain, dstR])
+            return self.BlendSeams([imgMain, dstR, dstL])
 
         # get inverse mask of main
         imgMainGray = cv.cvtColor(imgMiddle,cv.COLOR_BGR2GRAY)

@@ -105,7 +105,10 @@
               body: JSON.stringify({})
               })
               .then( (response) => { 
-                  console.log("Good response")
+                  if (response.status==200)
+                    console.log("Good response")
+                  else
+                    console.log("An error occured",response)
                   // refreshStream()
               }).catch(res => {
                   console.log("Error occured in POST recalibrate",res)
@@ -126,8 +129,11 @@
                 mode: 'no-cors',
                 body: JSON.stringify({})
                 })
-                .then( (response) => { 
+                .then( (response) => {
+                  if (response.status==200)
                     console.log("Good response")
+                  else
+                    console.log("An error occured",response)
                     // refreshStream()
                 }).catch(res => {
                     console.log("Error occured in POST recalibrate",res)
@@ -149,7 +155,10 @@
                 body: JSON.stringify({})
                 })
                 .then( (response) => { 
-                    console.log("Good response")
+                    if (response.status==200)
+                      console.log("Good response")
+                    else
+                      console.log("An error occured",response)
                     // refreshStream()
                 }).catch(res => {
                     console.log("Error occured in POST recalibrate",res)
