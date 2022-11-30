@@ -152,6 +152,24 @@ def recalibrateCamerasRoute():
    recalibrateCams()
    return {'status' : 200}
 
+@app.route('/reset', methods=['POST'])
+def recalibrateCamerasRoute():
+   global cam
+   try:
+      homography = cam.openHomographyFile("homography2origin_Backup.npy")
+      cam.saveHomographyToFile("homography2origin.npy")
+      return {'status' : 200}
+   except:
+      return {'status' : 400}
+
+@app.route('/blur', methods=['POST'])
+def recalibrateCamerasRoute():
+   global cam
+   try:
+      cam.blend = not cam.blend
+      return {'status' : 200}
+   except:
+      return {'status' : 400}
 
 @app.route('/panVid',methods=['GET'])
 def getWebpage():

@@ -10,6 +10,7 @@ class CameraSystem:
     overlapAmount = 56
     homographyMatrix = []
     warpAmount = 200
+    blend = False
     
     def __init__(self, cameraIndexList=[], compressCameraFeed=True, useLinuxCam=True):
         # cameraIndexList is either a range or a list of the camera indices
@@ -579,7 +580,9 @@ class CameraSystem:
         # warp right
         dstR = cv.warpPerspective(imgRight,H,(w, h))
        
-        """
+        if self.blend:
+            return self.BlendSeams([imgMain, dstR])
+
          # get inverse mask of main
         ret, mainMaskInv = cv.threshold(imgMainGray, 0, 255, cv.THRESH_BINARY_INV)
 
@@ -590,8 +593,8 @@ class CameraSystem:
         overlapped = cv.add(dstRMasked, imgMain)
 
         return overlapped
-        """
-        return self.BlendSeams([imgMain, dstR])
+        
+        
 
     def stitchThree(self, imgLeft, imgMiddle, imgRight, Hl, Hr):
         """
@@ -606,6 +609,9 @@ class CameraSystem:
         dstR = cv.warpPerspective(imgRight,Hr,(w, h))
         dstL = cv.warpPerspective(imgLeft,Hl,(w, h))
 
+        if self.blend:
+            return self.BlendSeams([imgMain, dstR])
+
         # additional step - erase the opposite edge
         # - if the warpPerspective goes to far, it could wrap around to the other side
         # - this would cause the right and left image to overlap in the edge region 
@@ -614,7 +620,6 @@ class CameraSystem:
   
         # add the warped images together
        
-        """
         rAndL = cv.add(dstR, dstL)
 
         # get inverse mask of middle
@@ -626,7 +631,6 @@ class CameraSystem:
 
         # add middle in
         return cv.add(rAndLMasked, imgMiddle)
-        """
 
         return self.BlendSeams([imgMiddle,dstR,dstL])
 
