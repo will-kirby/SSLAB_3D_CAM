@@ -1,65 +1,164 @@
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Pannellum Video Demo</title>
-    <link rel="stylesheet" href="https://cdn.pannellum.org/2.5/pannellum.css"/>
-    <script type="text/javascript" src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
-    <style>
-    #panorama {
-       width: 100%;
-       height: 100%;
-    }
-    </style>
-    <button name="refresh" onclick="refreshStream()">Refresh</button>
-    <button name="recalibrate" onclick="recalibrateStream()">Recalibrate</button>
-    
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>360 Panorama Viewer</title>
+    <link rel="stylesheet" href="../css/button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
+    ></script>
+    <!-- <style>
+      #panorama {
+          width: 600px;
+          height: 400px;
+      }
+      </style> -->
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0021A5;" >
+      <a class="navbar-brand" href="#">SmartSystems Lab 360° Camera</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link active" href="#">Home<span class="sr-only">(current)</span></a>
+          <a class="nav-item nav-link" href="https://smartsystems.ece.ufl.edu/">About Us</a>
+        </div>
+        <a class="nav-item nav-link"><h1 style="color: #FA4616">////</h1></a>
+      </div>
+    </nav>
+    <div class="container">
+      <div id="panorama">
 
-<div id="panorama"></div>
+        <div id="controls">
+          <div class="ctrl" id="zoom-in" title="Zoom in">&plus;</div>
+          <div class="ctrl" id="zoom-out" title="Zoom out">&minus;</div>
+          <div class="ctrl" id="fullscreen" title="Fullscreen">&#x2922;</div>
+          <div class="ctrl" id="reset" title="Reset Calibration">&#8634;</div>
+          <!-- <div class="ctrl" id="recalibrate" title="Recalibrate">&#128425;</div> -->
+          <div class="ctrl" id="recalibrate" title="Recalibrate">&#9881;</div>
+          <div class="ctrl" id="toggleBlur" title="Toggle Seam Removal">&#128396;</div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var image = document.createElement('img');
+      viewer = pannellum.viewer('panorama', {
+          "type": "equirectangular",
+          "panorama": image,
+          "showControls": false,
+          "dynamic": true,
+          "autoLoad": true,
+          "vaov": 90,
+          // "setUpdate": true
+      });
+      image.onload = function(){
+        viewer.setUpdate(true);
+      }
+      image.src = 'http://192.168.55.1:5000/vid';
+      // image.src = '../images/fullPanoLab_5.jpg'
+      
+      // Make buttons work
 
-<script>
-var image = document.createElement('img');
-viewer = pannellum.viewer('panorama', {
-     "type": "equirectangular",
-     "panorama": image,
-     "dynamic": true,
-     "autoLoad": true,
-     "vaov": 90
-});
-image.onload = function(){
-   viewer.setUpdate(true);
-}
-image.src = 'http://192.168.55.1:5000/vid';
-</script>
+      document
+        .getElementById("zoom-in")
+        .addEventListener("click", function (e) {
+          viewer.setHfov(viewer.getHfov() - 10);
+        });
+      document
+        .getElementById("zoom-out")
+        .addEventListener("click", function (e) {
+          viewer.setHfov(viewer.getHfov() + 10);
+        });
+      document
+        .getElementById("fullscreen")
+        .addEventListener("click", function (e) {
+          viewer.toggleFullscreen();
+        });
+      document
+        .getElementById("recalibrate")
+        .addEventListener("click", function (e) {
+          console.log("Recal called")
+          fetch("http://192.168.55.1:5000/vid", {
+          // fetch("http://localhost:5000/vid", {
 
-<script>
-    function recalibrateStream(){
-        console.log("Recal called")
-        fetch("http://192.168.55.1:5000/vid", {
-        // fetch("http://localhost:5000/vid", {
+              method: "post",
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              mode: 'no-cors',
+              body: JSON.stringify({})
+              })
+              .then( (response) => { 
+                  console.log("Good response")
+                  // refreshStream()
+              }).catch(res => {
+                  console.log("Error occured in POST recalibrate",res)
+              })
+          });
+        document
+          .getElementById("reset")
+          .addEventListener("click", function (e) {
+            console.log("Reset called")
+            fetch("http://192.168.55.1:5000/reset", {
+            // fetch("http://localhost:5000/vid", {
 
-            method: "post",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            mode: 'no-cors',
-            body: JSON.stringify({})
-            })
-            .then( (response) => { 
-                console.log("Good response")
-                refreshStream()
-            }).catch(res => {
-                console.log("Error occured in POST recalibrate",res)
-            })
-    }
-    function refreshStream(){
-        location.reload()
-    }
-</script>
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'no-cors',
+                body: JSON.stringify({})
+                })
+                .then( (response) => { 
+                    console.log("Good response")
+                    // refreshStream()
+                }).catch(res => {
+                    console.log("Error occured in POST recalibrate",res)
+                })
+          });
+        document
+          .getElementById("toggleBlur")
+          .addEventListener("click", function (e) {
+            console.log("Reset called")
+            fetch("http://192.168.55.1:5000/blur", {
+            // fetch("http://localhost:5000/vid", {
 
-
-
-</body>
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'no-cors',
+                body: JSON.stringify({})
+                })
+                .then( (response) => { 
+                    console.log("Good response")
+                    // refreshStream()
+                }).catch(res => {
+                    console.log("Error occured in POST recalibrate",res)
+                })
+          });
+    </script>
+  </body>
 </html>
+
+<head> </head>
+
+<!-- <img src="../images/fullPanoLab_5.jpg" /> -->
