@@ -43,7 +43,6 @@
     </nav>
     <div class="container">
       <div id="panorama">
-        <!-- <img id="panoImg" src="http://192.168.55.1:5000/vid" height="100%" width="100%"/> -->
 
         <div id="controls">
           <div class="ctrl" id="zoom-in" title="Zoom in">&plus;</div>
@@ -61,31 +60,18 @@
       viewer = pannellum.viewer('panorama', {
           "type": "equirectangular",
           "panorama": image,
+          "showControls": false,
           "dynamic": true,
           "autoLoad": true,
-          "vaov": 90
+          "vaov": 90,
+          // "setUpdate": true
       });
       image.onload = function(){
         viewer.setUpdate(true);
       }
-      image.src = 'http://192.168.55.1:5000/vid';
-      // var image = document.getElementById("panoImg")
-      // viewer = pannellum.viewer("panorama", {
-      //   type: "equirectangular",
-      //   panorama: "../images/fullPanoLab_5.jpg",
-      //   // panorama: image,
-      //   // panorama: "http://192.168.55.1:5000/vid",  
-      //   vaov: 90,
-      //   showControls: false,
-      //   autoLoad: true,
-      //   // dynamic: true,
-      //   // setUpdate: true,
-      // });
-
-      // image.onload = function(){
-      //   viewer.setUpdate(true);
-      // }
-
+      // image.src = 'http://192.168.55.1:5000/vid';
+      image.src = '../images/fullPanoLab_5.jpg'
+      
       // Make buttons work
 
       document
@@ -103,12 +89,72 @@
         .addEventListener("click", function (e) {
           viewer.toggleFullscreen();
         });
-
       document
         .getElementById("recalibrate")
         .addEventListener("click", function (e) {
-          //FIXME add recalibrate function here
-        });
+          console.log("Recal called")
+          fetch("http://192.168.55.1:5000/vid", {
+          // fetch("http://localhost:5000/vid", {
+
+              method: "post",
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              mode: 'no-cors',
+              body: JSON.stringify({})
+              })
+              .then( (response) => { 
+                  console.log("Good response")
+                  // refreshStream()
+              }).catch(res => {
+                  console.log("Error occured in POST recalibrate",res)
+              })
+          });
+        document
+          .getElementById("reset")
+          .addEventListener("click", function (e) {
+            console.log("Reset called")
+            fetch("http://192.168.55.1:5000/reset", {
+            // fetch("http://localhost:5000/vid", {
+
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'no-cors',
+                body: JSON.stringify({})
+                })
+                .then( (response) => { 
+                    console.log("Good response")
+                    // refreshStream()
+                }).catch(res => {
+                    console.log("Error occured in POST recalibrate",res)
+                })
+          });
+        document
+          .getElementById("toggleBlur")
+          .addEventListener("click", function (e) {
+            console.log("Reset called")
+            fetch("http://192.168.55.1:5000/blur", {
+            // fetch("http://localhost:5000/vid", {
+
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'no-cors',
+                body: JSON.stringify({})
+                })
+                .then( (response) => { 
+                    console.log("Good response")
+                    // refreshStream()
+                }).catch(res => {
+                    console.log("Error occured in POST recalibrate",res)
+                })
+          });
     </script>
   </body>
 </html>
