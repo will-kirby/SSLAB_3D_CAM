@@ -18,7 +18,7 @@ The system is a 360° Camera with a real-time video feed and the option to write
 
 The system features a logging tool for testing and debugging purposes. Given arguments, the user can perform variable tests on different camera ranges, recording durations, and stitcher algorithms. Using logs from the testing, we can create a performance report on stitching efficiency.
 
-For a more technical background see [Preliminary Report](Milestones/Preliminary_Report.pdf)
+For a more technical background see [Final Report](Milestones/Final_Report.pdf)
 
 ### Behavior Diagram
 
