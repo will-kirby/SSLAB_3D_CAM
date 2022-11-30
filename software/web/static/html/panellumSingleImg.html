@@ -43,7 +43,7 @@
     </nav>
     <div class="container">
       <div id="panorama">
-        <img id="panoImg" src="http://192.168.55.1:5000/vid" height="100%" width="100%"/>
+        <!-- <img id="panoImg" src="http://192.168.55.1:5000/vid" height="100%" width="100%"/> -->
 
         <div id="controls">
           <div class="ctrl" id="zoom-in" title="Zoom in">&plus;</div>
@@ -57,18 +57,30 @@
       </div>
     </div>
     <script>
-      var image = document.getElementById("panoImg")
-      viewer = pannellum.viewer("panorama", {
-        type: "equirectangular",
-        // panorama: "../images/fullPanoLab_5.jpg",
-        panorama: image,
-        // panorama: "http://192.168.55.1:5000/vid",  
-        vaov: 90,
-        showControls: false,
-        autoLoad: true,
-        dynamic: true,
-        setUpdate: true,
+      var image = document.createElement('img');
+      viewer = pannellum.viewer('panorama', {
+          "type": "equirectangular",
+          "panorama": image,
+          "dynamic": true,
+          "autoLoad": true,
+          "vaov": 90
       });
+      image.onload = function(){
+        viewer.setUpdate(true);
+      }
+      image.src = 'http://192.168.55.1:5000/vid';
+      // var image = document.getElementById("panoImg")
+      // viewer = pannellum.viewer("panorama", {
+      //   type: "equirectangular",
+      //   panorama: "../images/fullPanoLab_5.jpg",
+      //   // panorama: image,
+      //   // panorama: "http://192.168.55.1:5000/vid",  
+      //   vaov: 90,
+      //   showControls: false,
+      //   autoLoad: true,
+      //   // dynamic: true,
+      //   // setUpdate: true,
+      // });
 
       // image.onload = function(){
       //   viewer.setUpdate(true);
