@@ -43,21 +43,36 @@
     </nav>
     <div class="container">
       <div id="panorama">
+        <img id="panoImg" src="http://192.168.55.1:5000/vid" height="100%" width="100%"/>
+
         <div id="controls">
-          <div class="ctrl" id="recalibrate">&#8634;</div>
-          <div class="ctrl" id="zoom-in">&plus;</div>
-          <div class="ctrl" id="zoom-out">&minus;</div>
-          <div class="ctrl" id="fullscreen">&#x2922;</div>
+          <div class="ctrl" id="zoom-in" title="Zoom in">&plus;</div>
+          <div class="ctrl" id="zoom-out" title="Zoom out">&minus;</div>
+          <div class="ctrl" id="fullscreen" title="Fullscreen">&#x2922;</div>
+          <div class="ctrl" id="reset" title="Reset Calibration">&#8634;</div>
+          <!-- <div class="ctrl" id="recalibrate" title="Recalibrate">&#128425;</div> -->
+          <div class="ctrl" id="recalibrate" title="Recalibrate">&#9881;</div>
+          <div class="ctrl" id="toggleBlur" title="Toggle Seam Removal">&#128396;</div>
         </div>
       </div>
     </div>
     <script>
+      var image = document.getElementById("panoImg")
       viewer = pannellum.viewer("panorama", {
         type: "equirectangular",
-        panorama: "../images/fullPanoLab_5.jpg",
+        // panorama: "../images/fullPanoLab_5.jpg",
+        panorama: image,
+        // panorama: "http://192.168.55.1:5000/vid",  
         vaov: 90,
         showControls: false,
+        autoLoad: true,
+        dynamic: true,
+        setUpdate: true,
       });
+
+      // image.onload = function(){
+      //   viewer.setUpdate(true);
+      // }
 
       // Make buttons work
 
@@ -83,7 +98,6 @@
           //FIXME add recalibrate function here
         });
     </script>
-    <div class = "dir"><h6>Please click the "Load Panorama" button to begin.</h6></div>
   </body>
 </html>
 
