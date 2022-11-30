@@ -35,6 +35,8 @@ Design Project state spreadsheet in [shared folder](https://drive.google.com/dri
 
 ### Developer
 
+[Compiling OpenCV with CUDA](https://qengineering.eu/install-opencv-4.5-on-jetson-nano.html)
+
 `python3 -m pip install -r requirements.txt`
 
 Installs the required python packages/dependencies using pip package manager
