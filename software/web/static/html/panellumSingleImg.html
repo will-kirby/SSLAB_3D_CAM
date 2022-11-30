@@ -1,21 +1,92 @@
-<head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    <style>
-    #panorama {
-        width: 600px;
-        height: 400px;
-    }
-    </style>
-</head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>360 Panorama Viewer</title>
+    <link rel="stylesheet" href="../css/button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
+    ></script>
+    <!-- <style>
+      #panorama {
+          width: 600px;
+          height: 400px;
+      }
+      </style> -->
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #0021A5;" >
+      <a class="navbar-brand" href="#">SmartSystems Lab 360° Camera</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link active" href="#">Home<span class="sr-only">(current)</span></a>
+          <a class="nav-item nav-link" href="https://smartsystems.ece.ufl.edu/">About Us</a>
+        </div>
+        <a class="nav-item nav-link"><h1 style="color: #FA4616">////</h1></a>
+      </div>
+    </nav>
+    <div class="container">
+      <div id="panorama">
+        <div id="controls">
+          <div class="ctrl" id="recalibrate">&#8634;</div>
+          <div class="ctrl" id="zoom-in">&plus;</div>
+          <div class="ctrl" id="zoom-out">&minus;</div>
+          <div class="ctrl" id="fullscreen">&#x2922;</div>
+        </div>
+      </div>
+    </div>
+    <script>
+      viewer = pannellum.viewer("panorama", {
+        type: "equirectangular",
+        panorama: "../images/fullPanoLab_5.jpg",
+        vaov: 90,
+        showControls: false,
+      });
 
-<div id="panorama"></div>
-<script>
-pannellum.viewer('panorama', {
-    "type": "equirectangular",
-    "panorama": "../images/fullPanoLab_5.jpg",
-    "vaov": 90
-});
-</script>
+      // Make buttons work
+
+      document
+        .getElementById("zoom-in")
+        .addEventListener("click", function (e) {
+          viewer.setHfov(viewer.getHfov() - 10);
+        });
+      document
+        .getElementById("zoom-out")
+        .addEventListener("click", function (e) {
+          viewer.setHfov(viewer.getHfov() + 10);
+        });
+      document
+        .getElementById("fullscreen")
+        .addEventListener("click", function (e) {
+          viewer.toggleFullscreen();
+        });
+
+      document
+        .getElementById("recalibrate")
+        .addEventListener("click", function (e) {
+          //FIXME add recalibrate function here
+        });
+    </script>
+    <div class = "dir"><h6>Please click the "Load Panorama" button to begin.</h6></div>
+  </body>
+</html>
+
+<head> </head>
 
 <!-- <img src="../images/fullPanoLab_5.jpg" /> -->
