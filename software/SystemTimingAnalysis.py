@@ -81,12 +81,14 @@ if homoList is None:
 while True:
     times = []
     initTime = time.time()
+    """
     if(select.select([sys.stdin,],[],[],0)[0] and sys.stdin.read(1) == 'r'): 
         pt = time.time()
         if origin2Stitch:
           homoList = cam.calcHomographyWarped2Origin(frames)
         else:
           homoList = cam.calcHomographyWarped(frames)
+    
 
 
         etH = time.time() - pt
@@ -98,6 +100,7 @@ while True:
            else:
              homoList = cam.openHomographyFile(f"Cylindrical{numCams}_Backup.npy")
            print("loaded backup")
+    """
     pt = time.time()
     # grab frames
     if useStaticImages:

@@ -543,6 +543,32 @@ class CameraSystem:
         return Hlf, Hrf, Hlb, Hrb
 
 # STITCHING functions
+    def BlendSeams(self, images, blend_width=30):
+        blender = cv.detail_FeatherBlender()
+        sharpness = 1./blend_width
+        blender.setSharpness(sharpness)
+        imageMasks=[]
+        corners=[]
+        result = None
+        result_mask = None
+
+        for image in images:
+            imageGray =  cv.cvtColor(image,cv.COLOR_BGR2GRAY)
+            ret, imageMask = cv.threshold(imageGray, 0, 255, cv.THRESH_BINARY)
+            imageMasks.append(imageMask)
+            corners.append((0,0))
+
+        dst_sz = cv.detail.resultRoi(corners=corners, images=images)
+        blender.prepare(dst_sz)
+
+        for (image, corner, imageMask) in zip(images, corners, imageMasks):
+            blender.feed(cv.UMat(image.astype(np.int16)), imageMask, corner)
+        
+        result, result_mask = blender.blend(result, result_mask)
+
+        return cv.convertScaleAbs(result)
+
+
 
     def stitchSingle(self, imgMain, imgRight, H):
         """
@@ -552,16 +578,20 @@ class CameraSystem:
 
         # warp right
         dstR = cv.warpPerspective(imgRight,H,(w, h))
-
-        # get inverse mask of main
-        imgMainGray = cv.cvtColor(imgMain,cv.COLOR_BGR2GRAY)
+       
+        """
+         # get inverse mask of main
         ret, mainMaskInv = cv.threshold(imgMainGray, 0, 255, cv.THRESH_BINARY_INV)
 
         # apply mask to warped image (mask needs to be same size as input img)
         dstRMasked = cv.bitwise_and(dstR, dstR, mask=mainMaskInv)
 
         # add main in
-        return cv.add(dstRMasked, imgMain)
+        overlapped = cv.add(dstRMasked, imgMain)
+
+        return overlapped
+        """
+        return self.BlendSeams([imgMain, dstR])
 
     def stitchThree(self, imgLeft, imgMiddle, imgRight, Hl, Hr):
         """
@@ -581,8 +611,10 @@ class CameraSystem:
         # - this would cause the right and left image to overlap in the edge region 
         #   -> makes it bright when adding together
         # - not an issue if cylindrical warp, as it all fits without wrap around
-
+  
         # add the warped images together
+       
+        """
         rAndL = cv.add(dstR, dstL)
 
         # get inverse mask of middle
@@ -594,6 +626,9 @@ class CameraSystem:
 
         # add middle in
         return cv.add(rAndLMasked, imgMiddle)
+        """
+
+        return self.BlendSeams([imgMiddle,dstR,dstL])
 
 
     # The below two functions are used to stich left to right, adding segments on the right for pre-warped
