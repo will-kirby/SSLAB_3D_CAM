@@ -45,9 +45,10 @@ def recalibrateCams():
    if Cylindrical:
       if origin2Stitch:
          frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend = True, borderOnFirstAndFourth=True)
-         ret = cam.calcHomographyWarped2Origin(frames)
+         ret=cam.calcHomographyWarped2Origin(frames)
+         print(ret)
          if ret is None:
-            return {'status' : 400}
+            return 400
       else:
          #frames = cam.cylWarpFrames(frames, focalLength=focalLength,incrementAmount=cylWarpIncrement, cutFirstThenAppend=cutFirstThenAppend)
          frames = cam.applyCylWarp(frames, cylMatrices, cutFirstThenAppend=cutFirstThenAppend)
@@ -67,7 +68,7 @@ def recalibrateCams():
          Hl2, Hr2 = cam.calibrateMatrixTriple(frames[3], frames[4], frames[5], save=True, filename="testFlaskHomography1.npy")
         
       
-   return {'status' : 200}
+   return  200
 
 def get_frame():
    global cam
@@ -151,27 +152,27 @@ def vid():
 
 @app.route('/vid', methods=['POST'])
 def recalibrateCamerasRoute():
-   recalibrateCams()
-   return {'status' : 200}
+   ret = recalibrateCams()
+   return Response(status=ret)
 
 @app.route('/reset', methods=['POST'])
-def resetRecalibration():
+def resteRecalibration():
    global cam
    try:
       homography = cam.openHomographyFile("homography2origin_Backup.npy")
-      cam.saveHomographyToFile("homography2origin.npy")
-      return {'status' : 200}
+      cam.saveHomographyToFile(homography,"homography2origin.npy")
+      return Response(status=200)
    except:
-      return {'status' : 400}
+      return Response(status=400)
 
 @app.route('/blur', methods=['POST'])
 def toggleBlur():
    global cam
    try:
       cam.blend = not cam.blend
-      return {'status' : 200}
+      return Response(status=200)
    except:
-      return {'status' : 400}
+      return Response(status=400)
 
 @app.route('/panVid',methods=['GET'])
 def getWebpage():

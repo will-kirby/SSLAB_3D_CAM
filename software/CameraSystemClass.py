@@ -363,7 +363,7 @@ class CameraSystem:
                 goodMatches.append(m)
         return goodMatches
 
-    def _findHomographyFromMatched(self, goodMatches, kp1, kp2, MIN_MATCH_COUNT=15):
+    def _findHomographyFromMatched(self, goodMatches, kp1, kp2, MIN_MATCH_COUNT=25):
         # MIN_MATCH_COUNT the minimum matches to start stitching
 
         if len(goodMatches)>=MIN_MATCH_COUNT:
@@ -457,7 +457,11 @@ class CameraSystem:
             raise Exception
         
         HExtra = self.calcHomo(frames[-2], frames[-1])
-        #frames[-2] = self.stitchSingle(frames[-2], frames[-1], HExtra)
+        if HExtra is not None:
+            frames[-2] = self.stitchSingle(frames[-2], frames[-1], HExtra)
+        else:
+            print("Could not stitch left half of frame 0 to frame 5")
+            return None
         HlL, HrL = self.calcHomographyThree(frames[0], frames[1], frames[2]) # the left half homography mats
         HlR, HrR = self.calcHomographyThree(frames[3], frames[4], frames[5]) # the right half
         if (HlL is not None) and (HrL is not None):
@@ -581,11 +585,12 @@ class CameraSystem:
         dstR = cv.warpPerspective(imgRight,H,(w, h))
        
         if self.blend:
-            return self.BlendSeams([imgMain, dstR, dstL])
+            return self.BlendSeams([imgMain, dstR],100)
 
-        # get inverse mask of main
-        imgMainGray = cv.cvtColor(imgMiddle,cv.COLOR_BGR2GRAY)
-        ret, mainMaskInv = cv.threshold(imgMainGray, 0, 255, cv.THRESH_BINARY_INV)
+         # get inverse mask of main
+        imageMainGray =  cv.cvtColor(imgMain,cv.COLOR_BGR2GRAY)
+
+        ret, mainMaskInv = cv.threshold(imageMainGray, 0, 255, cv.THRESH_BINARY_INV)
 
         # apply mask to warped image (mask needs to be same size as input img)
         dstRMasked = cv.bitwise_and(dstR, dstR, mask=mainMaskInv)
@@ -611,7 +616,7 @@ class CameraSystem:
         dstL = cv.warpPerspective(imgLeft,Hl,(w, h))
 
         if self.blend:
-            return self.BlendSeams([imgMain, dstR])
+            return self.BlendSeams([imgMiddle, dstR, dstL], 100)
 
         # additional step - erase the opposite edge
         # - if the warpPerspective goes to far, it could wrap around to the other side
@@ -632,6 +637,8 @@ class CameraSystem:
 
         # add middle in
         return cv.add(rAndLMasked, imgMiddle)
+
+        #return self.BlendSeams([imgMiddle,dstR,dstL])
 
 
     # The below two functions are used to stich left to right, adding segments on the right for pre-warped
